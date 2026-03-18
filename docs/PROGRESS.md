@@ -1,44 +1,36 @@
 # UniSchedule - Implementation Progress
 
-## Current Status: ALL PHASES COMPLETE (code)
+## Status: COMPLETE
 
-| Phase | Name | Status | Tasks |
-|-------|------|--------|-------|
-| 1 | Core MVP - Exam Schedule | COMPLETE | 10/10 |
-| 2 | Lecture Schedule + Polish | COMPLETE | 4/4 |
-| 3 | Auth + PWA + Push | COMPLETE (code) | 6/6 code, 2 user actions pending |
-| 4 | Gmail + Calendar + Deploy | COMPLETE (code) | 3/4 code, deployment pending |
-| 2 | Lecture Schedule + Polish | NOT STARTED | 0/4 |
-| 3 | Auth + Protected Sheets + Push Notifications | NOT STARTED | 0/6 |
-| 4 | Gmail + Polish + Deployment | NOT STARTED | 0/4 |
+| Phase | Name | Status |
+|-------|------|--------|
+| 1 | Core MVP - Exam Schedule | COMPLETE |
+| 2 | Lecture Schedule + Polish | COMPLETE |
+| 3 | PWA + Push Notifications | COMPLETE |
+| 4 | Calendar Export + Animations | COMPLETE |
+| - | Responsive Design (mobile + desktop) | COMPLETE |
+| - | Feature cleanup (removed Gmail/seat/auth) | COMPLETE |
 
-## Phase Details
+## What's Built
+- 61 source files, zero build errors
+- Exam schedule auto-fetched from Google Sheets (real data, 24 exams from 3 tabs)
+- Group filtering (chem24-01, bio24-01, 25-01, etc.)
+- Exam type detection (midterm, final, quiz, retake) from Georgian text
+- Onboarding wizard (university → faculty → year → group)
+- Lecture schedule upload (CSV/XLSX)
+- Weekly schedule grid (single-day on mobile, full grid on desktop)
+- Calendar export (.ics, individual + bulk)
+- Push notifications with timing options (1w, 3d, 1d, 2h)
+- PWA manifest + service worker
+- Dark/light/system theme
+- Georgian + English i18n
+- Desktop sidebar nav + mobile bottom nav
+- Responsive: 375px mobile to 1440px desktop
 
-See individual phase docs in `docs/phases/`:
-- `phase-1-mvp.md` - Core exam schedule with filtering and countdowns
-- `phase-2-lectures.md` - Lecture upload, weekly grid, room map, dark mode
-- `phase-3-auth-push.md` - Google auth, auto-fetch, PWA, push notifications
-- `phase-4-gmail-deploy.md` - Gmail integration, calendar export, deployment
+## Remaining (non-code, user actions)
+- [ ] Browser test the UI
+- [ ] Generate PWA icons (open `public/icons/generate.html`)
+- [ ] Deploy to Vercel (import repo, add env vars)
 
-## Quick Context for Continuing Agents
-
-**What this project does**: Parses Google Sheets exam/lecture schedules from Agricultural University of Georgia, filters by student's group code, shows clean mobile-first UI with countdowns and notifications.
-
-**Where we are**: All 4 phases code complete. 60+ source files, zero build errors. Ready for browser testing and deployment. User actions needed: (1) Google Cloud project + credentials, (2) PWA icons, (3) gh auth + GitHub repo, (4) Vercel deployment.
-
-**Key data**: Exam schedule is publicly accessible via `gviz/tq?tqx=out:csv` API. Lecture schedule requires auth. Group codes like `chem24-01` map to faculties.
-
-**Tech decisions made**: Next.js 14, Tailwind, shadcn/ui, Framer Motion, papaparse for CSV, Georgian + English i18n.
-
-## Cost Analysis - Everything Free
-
-| Service | Free Tier | Limit |
-|---|---|---|
-| Vercel Hobby | Hosting, serverless, cron, HTTPS | 100GB bandwidth/mo |
-| Google Cloud | Sheets API + Gmail API | 500 req/100sec, 100 test users |
-| web-push | VAPID-based push | Unlimited |
-| Domain | `unischedule.vercel.app` | Custom domain optional ~$10/yr |
-| GitHub | Public repo | Unlimited |
-| npm packages | All open-source | Free |
-
-**Total: $0/month**
+## Repo
+https://github.com/000Janela000/unischedule
