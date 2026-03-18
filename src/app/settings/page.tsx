@@ -58,7 +58,7 @@ export default function SettingsPage() {
   }, [clearLectures]);
 
   return (
-    <div className="space-y-6 px-4 py-4">
+    <div className="max-w-2xl mx-auto space-y-6 px-4 py-4">
       <h1 className="text-lg font-bold text-foreground">{t('settings.title')}</h1>
 
       {/* My Group */}
@@ -80,7 +80,7 @@ export default function SettingsPage() {
           </div>
           <Link
             href="/onboarding"
-            className="flex items-center gap-1 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
+            className="flex items-center gap-1 rounded-md bg-muted px-3 py-1.5 min-h-[44px] text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
           >
             {t('settings.change')}
             <ChevronRight className="h-3 w-3" />
@@ -111,7 +111,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
+                  className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 min-h-[44px] text-xs font-medium text-foreground transition-colors hover:bg-muted/80"
                 >
                   <Upload className="h-3 w-3" />
                   {t('settings.change')}
@@ -119,7 +119,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="flex items-center gap-1.5 rounded-md bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
+                  className="flex items-center gap-1.5 rounded-md bg-destructive/10 px-3 py-1.5 min-h-[44px] text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
                 >
                   <Trash2 className="h-3 w-3" />
                   {t('settings.clearSchedule')}
@@ -176,7 +176,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={subscribed ? unsubscribe : subscribe}
                 className={cn(
-                  'mb-3 w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
+                  'mb-3 w-full rounded-lg px-4 py-2.5 min-h-[44px] text-sm font-medium transition-colors',
                   subscribed
                     ? 'bg-destructive/10 text-destructive hover:bg-destructive/20'
                     : 'bg-primary text-primary-foreground hover:bg-primary/90'
@@ -199,7 +199,7 @@ export default function SettingsPage() {
                     ].map(({ key, label }) => (
                       <label
                         key={key}
-                        className="flex items-center gap-2 text-xs text-foreground"
+                        className="flex items-center gap-2 min-h-[44px] text-xs text-foreground cursor-pointer"
                       >
                         <input
                           type="checkbox"
@@ -211,7 +211,7 @@ export default function SettingsPage() {
                                 : prev.filter((t) => t !== key)
                             );
                           }}
-                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                          className="h-5 w-5 rounded border-border text-primary focus:ring-primary"
                         />
                         {label}
                       </label>
@@ -252,7 +252,7 @@ export default function SettingsPage() {
                   setGmailConnected(false);
                   setGmailMessage(null);
                 }}
-                className="flex items-center gap-1.5 rounded-md bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
+                className="flex items-center gap-1.5 rounded-md bg-destructive/10 px-3 py-1.5 min-h-[44px] text-xs font-medium text-destructive transition-colors hover:bg-destructive/20"
               >
                 {t('gmail.disconnect')}
               </button>
@@ -290,7 +290,7 @@ export default function SettingsPage() {
               type="button"
               onClick={() => setLang('ka')}
               className={cn(
-                'rounded-lg border-2 px-3 py-2 text-sm font-medium transition-all',
+                'rounded-lg border-2 px-3 py-2 min-h-[44px] text-sm font-medium transition-all',
                 lang === 'ka'
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border text-foreground hover:border-muted-foreground/50'
@@ -302,7 +302,7 @@ export default function SettingsPage() {
               type="button"
               onClick={() => setLang('en')}
               className={cn(
-                'rounded-lg border-2 px-3 py-2 text-sm font-medium transition-all',
+                'rounded-lg border-2 px-3 py-2 min-h-[44px] text-sm font-medium transition-all',
                 lang === 'en'
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border text-foreground hover:border-muted-foreground/50'
@@ -320,12 +320,12 @@ export default function SettingsPage() {
           <h2 className="mb-3 text-sm font-medium text-card-foreground">
             {t('settings.theme')}
           </h2>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => setTheme('light')}
               className={cn(
-                'flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2.5 text-xs font-medium transition-all',
+                'flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2.5 min-h-[44px] text-xs font-medium transition-all',
                 theme === 'light'
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border text-foreground hover:border-muted-foreground/50'
@@ -338,7 +338,7 @@ export default function SettingsPage() {
               type="button"
               onClick={() => setTheme('dark')}
               className={cn(
-                'flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2.5 text-xs font-medium transition-all',
+                'flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2.5 min-h-[44px] text-xs font-medium transition-all',
                 theme === 'dark'
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border text-foreground hover:border-muted-foreground/50'
@@ -351,7 +351,7 @@ export default function SettingsPage() {
               type="button"
               onClick={() => setTheme('system')}
               className={cn(
-                'flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2.5 text-xs font-medium transition-all',
+                'flex flex-col items-center gap-1.5 rounded-lg border-2 px-3 py-2.5 min-h-[44px] text-xs font-medium transition-all',
                 theme === 'system'
                   ? 'border-primary bg-primary/10 text-primary'
                   : 'border-border text-foreground hover:border-muted-foreground/50'

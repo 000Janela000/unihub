@@ -4,7 +4,6 @@ export const STORAGE_KEYS = {
   THEME: 'unischedule_theme',
   EXAM_CACHE: 'unischedule_exams',
   LECTURE_DATA: 'unischedule_lectures',
-  EXAM_SEAT_PREFIX: 'unischedule_seat_',
 } as const;
 
 /**

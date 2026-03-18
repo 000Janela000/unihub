@@ -101,7 +101,7 @@ export default function OnboardingPage() {
   ];
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background max-w-2xl mx-auto w-full">
       {/* Header area */}
       <div className="px-4 pt-8 pb-4 text-center">
         <h1 className="mb-4 text-xl font-bold text-foreground">UniSchedule</h1>

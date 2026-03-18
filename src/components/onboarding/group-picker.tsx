@@ -20,7 +20,7 @@ export function GroupPicker({
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-8">
         {Array.from({ length: maxGroups }, (_, i) => {
           const num = i + 1;
           const isSelected = value === num;

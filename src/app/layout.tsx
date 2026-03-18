@@ -4,6 +4,7 @@ import "./globals.css";
 import { LanguageProvider } from "@/i18n";
 import { Header } from "@/components/layout/header";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { InstallPrompt } from "@/components/layout/install-prompt";
 import { ServiceWorkerRegistrar } from "@/components/layout/sw-registrar";
 
@@ -50,9 +51,14 @@ export default function RootLayout({
       <body className={`${notoSans.variable} font-sans antialiased`}>
         <LanguageProvider>
           <ServiceWorkerRegistrar />
-          <Header />
-          <InstallPrompt />
-          <main className="pt-14 pb-20 min-h-screen">{children}</main>
+          <div className="md:flex">
+            <SidebarNav />
+            <div className="flex-1 md:ml-60">
+              <Header />
+              <InstallPrompt />
+              <main className="pt-14 pb-20 md:pb-6 min-h-screen">{children}</main>
+            </div>
+          </div>
           <BottomNav />
         </LanguageProvider>
       </body>

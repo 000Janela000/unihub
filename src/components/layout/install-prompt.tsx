@@ -37,7 +37,7 @@ export function InstallPrompt() {
           <button
             type="button"
             onClick={promptInstall}
-            className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 min-h-[44px] text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             <Download className="h-3 w-3" />
             {t('install.button')}
@@ -46,7 +46,7 @@ export function InstallPrompt() {
           <button
             type="button"
             onClick={handleDismiss}
-            className="rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground"
+            className="flex items-center justify-center h-[44px] w-[44px] rounded-md text-muted-foreground transition-colors hover:text-foreground"
             aria-label={t('install.dismiss')}
           >
             <X className="h-4 w-4" />

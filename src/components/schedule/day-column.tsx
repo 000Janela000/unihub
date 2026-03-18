@@ -9,20 +9,23 @@ interface DayColumnProps {
   onLectureClick: (lecture: Lecture) => void;
   startHour: number;
   endHour: number;
+  hideHeader?: boolean;
 }
 
-export function DayColumn({ day, onLectureClick, startHour, endHour }: DayColumnProps) {
+export function DayColumn({ day, onLectureClick, startHour, endHour, hideHeader }: DayColumnProps) {
   const { lang } = useLanguage();
   const dayName = lang === 'ka' ? day.dayNameKa : day.dayNameEn;
   const shortDayName = lang === 'ka' ? dayName.slice(0, 3) : dayName.slice(0, 3);
   const totalHours = endHour - startHour;
 
   return (
-    <div className="flex min-w-[120px] flex-1 flex-col">
+    <div className="flex w-full flex-1 flex-col">
       {/* Day header */}
-      <div className="sticky top-0 z-10 border-b border-border bg-card px-2 py-2 text-center">
-        <span className="text-xs font-semibold text-foreground">{shortDayName}</span>
-      </div>
+      {!hideHeader && (
+        <div className="sticky top-0 z-10 border-b border-border bg-card px-2 py-2 text-center">
+          <span className="text-xs font-semibold text-foreground">{shortDayName}</span>
+        </div>
+      )}
 
       {/* Time grid area */}
       <div className="relative flex-1" style={{ minHeight: `${totalHours * 60}px` }}>

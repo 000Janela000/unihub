@@ -81,7 +81,7 @@ export default function ExamsPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="space-y-6 px-4 py-4">
+      <div className="max-w-4xl mx-auto space-y-6 px-4 py-4">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-foreground">{t('exams.title')}</h1>
         </div>
@@ -138,7 +138,7 @@ export default function ExamsPage() {
           animation: examFadeIn 0.4s ease-out both;
         }
       `}</style>
-      <div className="space-y-6 px-4 py-4">
+      <div className="max-w-4xl mx-auto space-y-6 px-4 py-4">
         {/* Header with refresh and export buttons */}
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-bold text-foreground">{t('exams.title')}</h1>

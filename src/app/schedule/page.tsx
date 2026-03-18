@@ -87,7 +87,7 @@ export default function SchedulePage() {
   }
 
   return (
-    <div className="flex h-full flex-col px-2 pb-2">
+    <div className="max-w-6xl mx-auto flex h-full flex-col px-2 pb-2 w-full">
       <WeekNav
         currentDate={currentDate}
         onPrev={handlePrevWeek}
