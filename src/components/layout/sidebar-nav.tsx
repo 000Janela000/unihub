@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ClipboardList, Calendar, Settings } from 'lucide-react';
@@ -21,10 +22,21 @@ const navItems: NavItem[] = [
 export function SidebarNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Don't render on server to avoid hydration mismatch from i18n
+  if (!mounted) {
+    return (
+      <aside className="hidden md:flex fixed left-0 top-0 z-40 h-screen w-60 flex-col border-r border-border/50 bg-card/90" />
+    );
+  }
 
   return (
     <aside className="hidden md:flex fixed left-0 top-0 z-40 h-screen w-60 flex-col border-r border-border/50 backdrop-blur-xl bg-card/90">
-      {/* App logo/title */}
       <div className="flex h-14 items-center gap-3 border-b border-border/50 px-6">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
           U
@@ -34,7 +46,6 @@ export function SidebarNav() {
         </Link>
       </div>
 
-      {/* Nav items */}
       <nav className="flex-1 px-3 py-6">
         <ul className="space-y-1.5">
           {navItems.map((item) => {
@@ -64,7 +75,6 @@ export function SidebarNav() {
         </ul>
       </nav>
 
-      {/* Footer */}
       <div className="border-t border-border/50 px-6 py-4">
         <p className="text-[10px] text-muted-foreground/60">UniSchedule v1.0.0</p>
       </div>

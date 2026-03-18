@@ -1,26 +1,30 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ClipboardList, Calendar, Settings } from 'lucide-react';
 import { useLanguage } from '@/i18n';
 import { cn } from '@/lib/utils';
 
-interface NavItem {
-  href: string;
-  labelKey: string;
-  icon: typeof ClipboardList;
-}
-
-const navItems: NavItem[] = [
+const navItems = [
   { href: '/exams', labelKey: 'nav.exams', icon: ClipboardList },
   { href: '/schedule', labelKey: 'nav.schedule', icon: Calendar },
   { href: '/settings', labelKey: 'nav.settings', icon: Settings },
-];
+] as const;
 
 export function BottomNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) {
+    return (
+      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-background/80 h-16 md:hidden" />
+    );
+  }
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 backdrop-blur-xl bg-background/80 pb-[env(safe-area-inset-bottom)] md:hidden">
