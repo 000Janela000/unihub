@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { Lecture, DaySchedule, WeekSchedule } from '@/types';
+import type { Lecture, WeekSchedule } from '@/types';
 import { useUserGroup } from '@/hooks/use-user-group';
 
 const DAY_NAMES_KA: Record<number, string> = {
@@ -24,7 +24,7 @@ export function useSchedule() {
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { group } = useUserGroup();
+  const { group, loading: groupLoading } = useUserGroup();
 
   const fetchLectures = useCallback(async () => {
     if (!group?.groupCode) {
@@ -56,10 +56,11 @@ export function useSchedule() {
   }, [group?.groupCode]);
 
   useEffect(() => {
+    // Wait for group to hydrate before fetching
+    if (groupLoading) return;
     fetchLectures();
-  }, [fetchLectures]);
+  }, [fetchLectures, groupLoading]);
 
-  // Group lectures into WeekSchedule (Mon-Fri)
   const weekSchedule: WeekSchedule = useMemo(() => {
     const days: WeekSchedule = [];
     for (let d = 1; d <= 5; d++) {
@@ -79,7 +80,7 @@ export function useSchedule() {
 
   return {
     lectures,
-    loading,
+    loading: groupLoading || loading,
     error,
     weekSchedule,
     refetch: fetchLectures,

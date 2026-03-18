@@ -51,7 +51,7 @@ function groupExamsByDate(exams: Exam[]): Map<string, Exam[]> {
 
 // Next.js App Router requires a default export for pages
 export default function ExamsPage() {
-  const { group } = useUserGroup();
+  const { group, loading: groupLoading } = useUserGroup();
   const { lang, t } = useLanguage();
   const [refreshing, setRefreshing] = useState(false);
   const [exported, setExported] = useState(false);
@@ -97,7 +97,7 @@ export default function ExamsPage() {
     setTimeout(() => setExported(false), 2000);
   }, [exams]);
 
-  if (loading) {
+  if (groupLoading || loading) {
     return (
       <div className="max-w-4xl mx-auto space-y-6 px-4 py-6 sm:px-6">
         <div className="flex items-center justify-between">

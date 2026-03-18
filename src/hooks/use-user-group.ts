@@ -6,10 +6,12 @@ import { getItem, setItem, removeItem, STORAGE_KEYS } from '@/lib/storage';
 
 export function useUserGroup() {
   const [group, setGroupState] = useState<UserGroup | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const stored = getItem<UserGroup | null>(STORAGE_KEYS.USER_GROUP, null);
     setGroupState(stored);
+    setLoading(false);
   }, []);
 
   const setGroup = useCallback((g: UserGroup) => {
@@ -22,5 +24,5 @@ export function useUserGroup() {
     removeItem(STORAGE_KEYS.USER_GROUP);
   }, []);
 
-  return { group, setGroup, clearGroup };
+  return { group, setGroup, clearGroup, loading };
 }

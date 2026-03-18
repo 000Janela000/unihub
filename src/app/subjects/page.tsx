@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/i18n';
 import { useUserGroup } from '@/hooks/use-user-group';
 import { useSubjects, getAvailableSubjects } from '@/hooks/use-subjects';
@@ -12,73 +12,51 @@ import type { Exam, Lecture } from '@/types';
 export default function SubjectsPage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { group } = useUserGroup();
+  const { group, loading: groupLoading } = useUserGroup();
   const [exams, setExams] = useState<Exam[]>([]);
   const [lectures, setLectures] = useState<Lecture[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Wait for group to hydrate from localStorage
+    if (groupLoading) return;
+
     if (!group) {
-      setLoading(false);
+      router.replace('/onboarding');
       return;
     }
 
-    let completed = 0;
-    const total = 2;
-    let hasError = false;
+    let cancelled = false;
 
-    const checkDone = () => {
-      completed++;
-      if (completed >= total) {
-        setLoading(false);
+    async function fetchData() {
+      setDataLoading(true);
+      setError(null);
+
+      const [examResult, lectureResult] = await Promise.allSettled([
+        fetch(`/api/sheets/exams?group=${encodeURIComponent(group!.groupCode)}&university=${group!.university}`)
+          .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+          .then(json => (Array.isArray(json) ? json : (json.exams ?? [])) as Exam[]),
+        fetch(`/api/sheets/lectures?group=${encodeURIComponent(group!.groupCode)}`)
+          .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+          .then(json => (Array.isArray(json) ? json : (json.lectures ?? [])) as Lecture[]),
+      ]);
+
+      if (cancelled) return;
+
+      if (examResult.status === 'fulfilled') setExams(examResult.value);
+      if (lectureResult.status === 'fulfilled') setLectures(lectureResult.value);
+
+      if (examResult.status === 'rejected' && lectureResult.status === 'rejected') {
+        setError(examResult.reason?.message || 'Failed to fetch data');
       }
-    };
 
-    // Fetch exams
-    const fetchExams = async () => {
-      try {
-        const params = new URLSearchParams({
-          group: group.groupCode,
-          university: group.university,
-        });
-        const res = await fetch(`/api/sheets/exams?${params.toString()}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        const data: Exam[] = Array.isArray(json) ? json : (json.exams ?? []);
-        setExams(data);
-      } catch (err) {
-        if (!hasError) {
-          const message = err instanceof Error ? err.message : 'Failed to fetch';
-          setError(message);
-          hasError = true;
-        }
-      } finally {
-        checkDone();
-      }
-    };
+      setDataLoading(false);
+    }
 
-    // Fetch lectures
-    const fetchLectures = async () => {
-      try {
-        const params = new URLSearchParams({
-          group: group.groupCode,
-        });
-        const res = await fetch(`/api/sheets/lectures?${params.toString()}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        const data: Lecture[] = Array.isArray(json) ? json : (json.lectures ?? []);
-        setLectures(data);
-      } catch {
-        // Lectures failing is not critical, just use exams
-      } finally {
-        checkDone();
-      }
-    };
-
-    fetchExams();
-    fetchLectures();
-  }, [group]);
+    fetchData();
+    return () => { cancelled = true; };
+  }, [group, groupLoading, router]);
 
   const availableSubjects = useMemo(() => getAvailableSubjects(exams, lectures), [exams, lectures]);
   const {
@@ -92,12 +70,23 @@ export default function SubjectsPage() {
     router.push('/exams');
   };
 
-  if (loading) {
+  // Show loading while group is hydrating OR data is fetching
+  if (groupLoading || dataLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-3 animate-fade-in">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <span className="text-sm text-muted-foreground">{t('subjects.loading')}</span>
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        <div className="mb-6">
+          <div className="h-6 w-48 rounded-lg bg-muted animate-pulse" />
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 rounded-xl border border-border/50 bg-card p-4" style={{ animationDelay: `${i * 50}ms` }}>
+              <div className="h-5 w-5 rounded bg-muted animate-pulse" />
+              <div className="h-4 rounded bg-muted animate-pulse" style={{ width: `${120 + Math.random() * 100}px` }} />
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 text-center">
+          <span className="text-xs text-muted-foreground animate-pulse">{t('subjects.loading')}</span>
         </div>
       </div>
     );
@@ -110,10 +99,11 @@ export default function SubjectsPage() {
           <p className="mb-4 text-sm text-muted-foreground">{error}</p>
           <button
             type="button"
-            onClick={() => router.push('/exams')}
-            className="w-full rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] min-h-[44px]"
+            onClick={() => window.location.reload()}
+            className="w-full rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] min-h-[44px] flex items-center justify-center gap-2"
           >
-            {t('subjects.continue')}
+            <RefreshCw className="h-4 w-4" />
+            {t('common.retry')}
           </button>
         </div>
       </div>
@@ -126,6 +116,11 @@ export default function SubjectsPage() {
         <h1 className="text-lg font-semibold text-foreground">
           {t('subjects.title')}
         </h1>
+        {group && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            {group.groupCode} · {availableSubjects.length} {t('subjects.nSelected')}
+          </p>
+        )}
       </div>
 
       {availableSubjects.length > 0 ? (
@@ -143,6 +138,9 @@ export default function SubjectsPage() {
           <BookOpen className="mb-4 h-12 w-12 text-muted-foreground/40" />
           <p className="text-sm text-muted-foreground">
             {t('subjects.noSubjects')}
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground/60">
+            {group?.groupCode}
           </p>
         </div>
       )}
