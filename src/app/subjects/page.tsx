@@ -11,7 +11,7 @@ import type { Exam, Lecture } from '@/types';
 
 export default function SubjectsPage() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { group, loading: groupLoading } = useUserGroup();
   const [groupExams, setGroupExams] = useState<Exam[]>([]);
   const [groupLectures, setGroupLectures] = useState<Lecture[]>([]);
@@ -184,7 +184,23 @@ export default function SubjectsPage() {
       {groupSubjects.length === 0 && allSubjects.length === 0 && (
         <div className="flex flex-col items-center py-12 text-center animate-fade-in">
           <BookOpen className="mb-4 h-12 w-12 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">{t('subjects.noSubjects')}</p>
+          <p className="text-sm font-medium text-foreground mb-2">
+            {lang === 'ka'
+              ? `კურსები ვერ მოიძებნა ჯგუფისთვის ${group?.groupCode ?? ''}`
+              : `No courses found for group ${group?.groupCode ?? ''}`}
+          </p>
+          <p className="text-xs text-muted-foreground max-w-xs mb-6">
+            {lang === 'ka'
+              ? 'ეს ჯგუფი შესაძლოა არ არსებობს მიმდინარე სემესტრის მონაცემებში. სცადეთ სხვა ჯგუფის ნომრის არჩევა.'
+              : 'This group may not exist in the current semester data. Try selecting a different group number.'}
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push('/onboarding')}
+            className="rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] min-h-[44px]"
+          >
+            {lang === 'ka' ? 'ჯგუფის შეცვლა' : 'Change Group'}
+          </button>
         </div>
       )}
 

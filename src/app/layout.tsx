@@ -43,6 +43,8 @@ export default function RootLayout({
   return (
     <html lang="ka" suppressHydrationWarning>
       <head>
+        {/* Prevent theme flash: must run before any CSS paints */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=JSON.parse(localStorage.getItem('unischedule_theme')||'"system"');if(t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})();` }} />
         <meta name="theme-color" content="#16a34a" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -50,17 +52,6 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </head>
       <body className={`${notoSans.variable} font-sans antialiased`} suppressHydrationWarning>
-        {/* Prevent theme flash: apply dark class before React hydrates */}
-        <script dangerouslySetInnerHTML={{ __html: `
-          (function() {
-            try {
-              var theme = JSON.parse(localStorage.getItem('unischedule_theme') || '"system"');
-              if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-              }
-            } catch(e) {}
-          })();
-        `}} />
         <LanguageProvider>
           <ServiceWorkerRegistrar />
           <div className="md:flex">

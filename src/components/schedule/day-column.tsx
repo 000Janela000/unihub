@@ -2,53 +2,55 @@
 
 import type { DaySchedule, Lecture } from '@/types';
 import { useLanguage } from '@/i18n';
-import { LectureBlock } from '@/components/schedule/lecture-block';
+import { LectureCard } from '@/components/schedule/lecture-card';
+import { CalendarX } from 'lucide-react';
 
 interface DayColumnProps {
   day: DaySchedule;
   onLectureClick: (lecture: Lecture) => void;
-  startHour: number;
-  endHour: number;
   hideHeader?: boolean;
 }
 
-export function DayColumn({ day, onLectureClick, startHour, endHour, hideHeader }: DayColumnProps) {
+export function DayColumn({ day, onLectureClick, hideHeader }: DayColumnProps) {
   const { lang } = useLanguage();
   const dayName = lang === 'ka' ? day.dayNameKa : day.dayNameEn;
-  const shortDayName = lang === 'ka' ? dayName.slice(0, 3) : dayName.slice(0, 3);
-  const totalHours = endHour - startHour;
+  const sorted = [...day.lectures].sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   return (
     <div className="flex w-full flex-1 flex-col">
       {/* Day header */}
       {!hideHeader && (
-        <div className="sticky top-0 z-10 border-b border-border bg-card px-2 py-2 text-center">
-          <span className="text-xs font-semibold text-foreground">{shortDayName}</span>
+        <div className="mb-2 px-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            {dayName}
+          </span>
+          <span className="ml-2 text-xs text-muted-foreground/60">
+            {sorted.length > 0 ? `${sorted.length}` : ''}
+          </span>
         </div>
       )}
 
-      {/* Time grid area */}
-      <div className="relative flex-1" style={{ minHeight: `${totalHours * 60}px` }}>
-        {/* Background grid lines */}
-        {Array.from({ length: totalHours }, (_, i) => (
-          <div
-            key={i}
-            className="absolute inset-x-0 border-t border-border/40"
-            style={{ top: `${(i / totalHours) * 100}%` }}
-          />
-        ))}
+      {sorted.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <CalendarX className="mb-2 h-8 w-8 text-muted-foreground/20" />
+          <p className="text-xs text-muted-foreground/50">
+            {lang === 'ka' ? 'ლექციები არ არის' : 'No classes'}
+          </p>
+        </div>
+      ) : (
+        <div className="relative flex flex-col gap-2 pl-4">
+          {/* Timeline line */}
+          <div className="absolute left-1 top-3 bottom-3 w-px bg-border" />
 
-        {/* Lecture blocks */}
-        {day.lectures.map((lecture) => (
-          <LectureBlock
-            key={lecture.id}
-            lecture={lecture}
-            onClick={onLectureClick}
-            startHour={startHour}
-            endHour={endHour}
-          />
-        ))}
-      </div>
+          {sorted.map((lecture) => (
+            <div key={lecture.id} className="relative">
+              {/* Timeline dot */}
+              <div className="absolute -left-3 top-4 h-2 w-2 rounded-full bg-primary/60 ring-2 ring-background" />
+              <LectureCard lecture={lecture} onClick={onLectureClick} />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

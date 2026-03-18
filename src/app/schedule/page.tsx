@@ -1,35 +1,37 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { RefreshCw, AlertCircle, CalendarX } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import Link from 'next/link';
+import { RefreshCw, AlertCircle, CalendarX, BookOpen } from 'lucide-react';
 import { useLanguage } from '@/i18n';
 import { useSchedule } from '@/hooks/use-schedule';
-import { WeekNav } from '@/components/schedule/week-nav';
+import { useUserGroup } from '@/hooks/use-user-group';
 import { WeekGrid } from '@/components/schedule/week-grid';
 import { cn } from '@/lib/utils';
 import type { Lecture } from '@/types';
+
+const SUBJECTS_STORAGE_KEY = 'unischedule_subjects';
 
 // Next.js App Router requires a default export for pages
 export default function SchedulePage() {
   const { t, lang } = useLanguage();
   const { lectures, loading, error, weekSchedule, refetch } = useSchedule();
-  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const { group } = useUserGroup();
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedSubjects, setSelectedSubjects] = useState<string[] | null>(null);
 
-  const handlePrevWeek = useCallback(() => {
-    setCurrentDate((prev) => {
-      const d = new Date(prev);
-      d.setDate(d.getDate() - 7);
-      return d;
-    });
-  }, []);
-
-  const handleNextWeek = useCallback(() => {
-    setCurrentDate((prev) => {
-      const d = new Date(prev);
-      d.setDate(d.getDate() + 7);
-      return d;
-    });
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(SUBJECTS_STORAGE_KEY);
+      if (raw !== null) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setSelectedSubjects(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
   }, []);
 
   const handleRefresh = useCallback(async () => {
@@ -105,13 +107,10 @@ export default function SchedulePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto flex h-full flex-col px-2 pb-2 w-full animate-fade-in">
-      <div className="flex items-center justify-between px-2 py-3">
-        <WeekNav
-          currentDate={currentDate}
-          onPrev={handlePrevWeek}
-          onNext={handleNextWeek}
-        />
+    <div className="max-w-6xl mx-auto flex flex-col px-3 sm:px-4 pb-2 w-full animate-fade-in">
+      {/* Header */}
+      <div className="flex items-center justify-between py-4">
+        <h1 className="text-lg font-semibold text-foreground">{t('schedule.title')}</h1>
         <button
           type="button"
           onClick={handleRefresh}
@@ -126,9 +125,29 @@ export default function SchedulePage() {
           />
         </button>
       </div>
-      <div className="flex-1 overflow-hidden">
-        <WeekGrid schedule={weekSchedule} onLectureClick={handleLectureClick} />
+
+      {/* Group info + subject filter indicator */}
+      <div className="flex items-center gap-2 mb-4">
+        {group && (
+          <div className="rounded-full bg-muted/60 px-3 py-1.5">
+            <span className="font-mono text-xs font-medium text-primary">
+              {group.groupCode}
+            </span>
+          </div>
+        )}
+        {selectedSubjects && (
+          <Link
+            href="/subjects"
+            className="flex items-center gap-1.5 rounded-full bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-all duration-200 hover:text-foreground hover:bg-muted"
+          >
+            <BookOpen className="h-3.5 w-3.5" />
+            {t('subjects.nSubjects').replace('{n}', String(selectedSubjects.length))}
+          </Link>
+        )}
       </div>
+
+      {/* Week grid */}
+      <WeekGrid schedule={weekSchedule} onLectureClick={handleLectureClick} />
     </div>
   );
 }

@@ -71,12 +71,28 @@ export function useExams(
     fetchExams();
   }, [fetchExams]);
 
-  // Filter by selected subjects
+  // Filter by selected subjects with fuzzy fallback
   const exams = useMemo(() => {
     if (!selectedSubjects || selectedSubjects.length === 0) return rawExams;
-    return rawExams.filter((exam) =>
+
+    // Try exact match first
+    const exactMatch = rawExams.filter((exam) =>
       selectedSubjects.includes(exam.subjectClean)
     );
+    if (exactMatch.length > 0) return exactMatch;
+
+    // Try fuzzy match: lowercase partial containment
+    const lowerSubjects = selectedSubjects.map(s => s.toLowerCase().trim());
+    const fuzzyMatch = rawExams.filter((exam) => {
+      const examLower = exam.subjectClean.toLowerCase().trim();
+      return lowerSubjects.some(sel =>
+        sel.includes(examLower) || examLower.includes(sel)
+      );
+    });
+    if (fuzzyMatch.length > 0) return fuzzyMatch;
+
+    // If filtering produces 0 results but raw exams exist, show all
+    return rawExams;
   }, [rawExams, selectedSubjects]);
 
   return { exams, loading, error, refetch: fetchExams };
