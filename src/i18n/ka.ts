@@ -11,6 +11,7 @@ export const ka = {
     selectFaculty: 'აირჩიეთ ფაკულტეტი',
     selectYear: 'აირჩიეთ კურსი',
     selectGroup: 'აირჩიეთ ჯგუფი',
+    selectYearAndGroup: 'აირჩიეთ კურსი და ჯგუფი',
     stepSelectUniversity: 'აირჩიე უნივერსიტეტი',
     stepSelectFaculty: 'აირჩიე ფაკულტეტი',
     stepSelectYear: 'აირჩიე კურსი',
@@ -94,6 +95,8 @@ export const ka = {
     search: 'ძებნა...',
     nSubjects: '{n} საგანი არჩეულია',
     editSubjects: 'საგნების რედაქტირება',
+    noSubjects: 'საგნები ვერ მოიძებნა',
+    loading: 'საგნების ჩატვირთვა...',
   },
   schedule: {
     title: 'ცხრილი',

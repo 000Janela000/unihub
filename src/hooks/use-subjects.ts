@@ -1,18 +1,25 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import type { Exam } from '@/types';
+import type { Exam, Lecture } from '@/types';
 
 const STORAGE_KEY = 'unischedule_subjects';
 
 /**
- * Extracts unique subjectClean values from a list of exams.
+ * Extracts unique subjects from exams and lectures combined.
  */
-export function getAvailableSubjects(exams: Exam[]): string[] {
+export function getAvailableSubjects(exams: Exam[], lectures?: Lecture[]): string[] {
   const set = new Set<string>();
   for (const exam of exams) {
     if (exam.subjectClean && exam.subjectClean.trim()) {
       set.add(exam.subjectClean.trim());
+    }
+  }
+  if (lectures) {
+    for (const lecture of lectures) {
+      if (lecture.subject && lecture.subject.trim()) {
+        set.add(lecture.subject.trim());
+      }
     }
   }
   return Array.from(set).sort((a, b) => a.localeCompare(b, 'ka'));

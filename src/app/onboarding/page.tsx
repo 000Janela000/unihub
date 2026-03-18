@@ -13,7 +13,7 @@ import { setItem, STORAGE_KEYS } from '@/lib/storage';
 import type { UserGroup } from '@/types';
 import { cn } from '@/lib/utils';
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 3;
 
 // Next.js App Router requires a default export for pages
 export default function OnboardingPage() {
@@ -33,8 +33,7 @@ export default function OnboardingPage() {
     switch (step) {
       case 1: return university !== null;
       case 2: return facultyId !== null;
-      case 3: return year !== null;
-      case 4: return groupNumber !== null;
+      case 3: return year !== null && groupNumber !== null;
       default: return false;
     }
   }, [step, university, facultyId, year, groupNumber]);
@@ -96,8 +95,7 @@ export default function OnboardingPage() {
   const stepTitles = [
     t('onboarding.selectUniversity'),
     t('onboarding.selectFaculty'),
-    t('onboarding.selectYear'),
-    t('onboarding.selectGroup'),
+    t('onboarding.selectYearAndGroup'),
   ];
 
   return (
@@ -106,23 +104,23 @@ export default function OnboardingPage() {
       <div className="h-1 w-full bg-gradient-to-r from-primary/60 via-primary to-primary/60" />
 
       {/* Header area */}
-      <div className="px-6 pt-10 pb-6 text-center">
+      <div className="px-6 pt-6 pb-4 text-center">
         <div className="mb-1 flex items-center justify-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
             U
           </div>
           <h1 className="text-xl font-bold text-foreground">UniSchedule</h1>
         </div>
-        <p className="mb-6 text-xs text-muted-foreground">agruni.edu.ge</p>
+        <p className="mb-4 text-xs text-muted-foreground">agruni.edu.ge</p>
         <StepIndicator currentStep={step} totalSteps={TOTAL_STEPS} />
-        <p className="mt-6 text-base font-semibold text-foreground">{stepTitles[step - 1]}</p>
+        <p className="mt-4 text-base font-semibold text-foreground">{stepTitles[step - 1]}</p>
       </div>
 
       {/* Step content with fade + slide transition */}
       <div className="flex-1 overflow-hidden px-6">
         <div
           ref={contentRef}
-          className="pt-2 transition-all duration-300 ease-out"
+          className="pt-1 transition-all duration-300 ease-out"
           style={{
             opacity: animating ? 0 : 1,
             transform: animating
@@ -141,20 +139,22 @@ export default function OnboardingPage() {
             />
           )}
           {step === 3 && (
-            <YearPicker value={year} onChange={setYear} />
-          )}
-          {step === 4 && (
-            <GroupPicker
-              value={groupNumber}
-              onChange={setGroupNumber}
-              groupCodePreview={groupCodePreview}
-            />
+            <div className="space-y-4">
+              <YearPicker value={year} onChange={setYear} />
+              {year !== null && (
+                <GroupPicker
+                  value={groupNumber}
+                  onChange={setGroupNumber}
+                  groupCodePreview={groupCodePreview}
+                />
+              )}
+            </div>
           )}
         </div>
       </div>
 
       {/* Navigation buttons */}
-      <div className="flex gap-3 px-6 py-6 pb-10">
+      <div className="flex gap-3 px-6 py-4 pb-8">
         {step > 1 && (
           <button
             type="button"

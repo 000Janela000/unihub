@@ -13,6 +13,7 @@ export const en: TranslationKeys = {
     selectFaculty: 'Select Faculty',
     selectYear: 'Select Year',
     selectGroup: 'Select Group',
+    selectYearAndGroup: 'Select Year & Group',
     stepSelectUniversity: 'Select University',
     stepSelectFaculty: 'Select Faculty',
     stepSelectYear: 'Select Year',
@@ -96,6 +97,8 @@ export const en: TranslationKeys = {
     search: 'Search...',
     nSubjects: '{n} subjects selected',
     editSubjects: 'Edit subjects',
+    noSubjects: 'No subjects found',
+    loading: 'Loading subjects...',
   },
   schedule: {
     title: 'Schedule',

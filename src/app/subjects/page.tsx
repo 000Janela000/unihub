@@ -7,13 +7,14 @@ import { useLanguage } from '@/i18n';
 import { useUserGroup } from '@/hooks/use-user-group';
 import { useSubjects, getAvailableSubjects } from '@/hooks/use-subjects';
 import { SubjectFilter } from '@/components/subjects/subject-filter';
-import type { Exam } from '@/types';
+import type { Exam, Lecture } from '@/types';
 
 export default function SubjectsPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { group } = useUserGroup();
   const [exams, setExams] = useState<Exam[]>([]);
+  const [lectures, setLectures] = useState<Lecture[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,6 +24,18 @@ export default function SubjectsPage() {
       return;
     }
 
+    let completed = 0;
+    const total = 2;
+    let hasError = false;
+
+    const checkDone = () => {
+      completed++;
+      if (completed >= total) {
+        setLoading(false);
+      }
+    };
+
+    // Fetch exams
     const fetchExams = async () => {
       try {
         const params = new URLSearchParams({
@@ -35,17 +48,39 @@ export default function SubjectsPage() {
         const data: Exam[] = Array.isArray(json) ? json : (json.exams ?? []);
         setExams(data);
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Failed to fetch';
-        setError(message);
+        if (!hasError) {
+          const message = err instanceof Error ? err.message : 'Failed to fetch';
+          setError(message);
+          hasError = true;
+        }
       } finally {
-        setLoading(false);
+        checkDone();
+      }
+    };
+
+    // Fetch lectures
+    const fetchLectures = async () => {
+      try {
+        const params = new URLSearchParams({
+          group: group.groupCode,
+        });
+        const res = await fetch(`/api/sheets/lectures?${params.toString()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        const data: Lecture[] = Array.isArray(json) ? json : (json.lectures ?? []);
+        setLectures(data);
+      } catch {
+        // Lectures failing is not critical, just use exams
+      } finally {
+        checkDone();
       }
     };
 
     fetchExams();
+    fetchLectures();
   }, [group]);
 
-  const availableSubjects = useMemo(() => getAvailableSubjects(exams), [exams]);
+  const availableSubjects = useMemo(() => getAvailableSubjects(exams, lectures), [exams, lectures]);
   const {
     selectedSubjects,
     toggleSubject,
@@ -62,7 +97,7 @@ export default function SubjectsPage() {
       <div className="flex min-h-[60vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3 animate-fade-in">
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <span className="text-sm text-muted-foreground">{t('common.loading')}</span>
+          <span className="text-sm text-muted-foreground">{t('subjects.loading')}</span>
         </div>
       </div>
     );
@@ -107,7 +142,7 @@ export default function SubjectsPage() {
         <div className="flex flex-col items-center py-12 text-center animate-fade-in">
           <BookOpen className="mb-4 h-12 w-12 text-muted-foreground/40" />
           <p className="text-sm text-muted-foreground">
-            {t('exams.noExams')}
+            {t('subjects.noSubjects')}
           </p>
         </div>
       )}
