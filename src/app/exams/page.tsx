@@ -1,0 +1,139 @@
+'use client';
+
+import { useMemo } from 'react';
+import { RefreshCw, AlertCircle, ClipboardList } from 'lucide-react';
+import { useExams } from '@/hooks/use-exams';
+import { useUserGroup } from '@/hooks/use-user-group';
+import { useLanguage } from '@/i18n';
+import { ExamDayGroup } from '@/components/exams/exam-day-group';
+import type { Exam } from '@/types';
+
+function ExamSkeleton() {
+  return (
+    <div className="animate-pulse space-y-3">
+      <div className="h-4 w-32 rounded bg-muted" />
+      <div className="rounded-lg border border-border bg-card p-4">
+        <div className="flex gap-3">
+          <div className="space-y-2">
+            <div className="h-3 w-8 rounded bg-muted" />
+            <div className="h-3 w-10 rounded bg-muted" />
+          </div>
+          <div className="flex-1 space-y-2">
+            <div className="h-4 w-3/4 rounded bg-muted" />
+            <div className="flex gap-2">
+              <div className="h-5 w-16 rounded-full bg-muted" />
+              <div className="h-5 w-20 rounded bg-muted" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function groupExamsByDate(exams: Exam[]): Map<string, Exam[]> {
+  const groups = new Map<string, Exam[]>();
+  for (const exam of exams) {
+    const existing = groups.get(exam.date);
+    if (existing) {
+      existing.push(exam);
+    } else {
+      groups.set(exam.date, [exam]);
+    }
+  }
+  return groups;
+}
+
+// Next.js App Router requires a default export for pages
+export default function ExamsPage() {
+  const { group } = useUserGroup();
+  const { lang, t } = useLanguage();
+  const { exams, loading, error, refetch } = useExams(
+    group?.groupCode || null,
+    group?.university || 'agruni'
+  );
+
+  const examsByDate = useMemo(() => groupExamsByDate(exams), [exams]);
+  const sortedDates = useMemo(
+    () => Array.from(examsByDate.keys()).sort(),
+    [examsByDate]
+  );
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-6 px-4 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-bold text-foreground">{t('exams.title')}</h1>
+        </div>
+        <ExamSkeleton />
+        <ExamSkeleton />
+        <ExamSkeleton />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-destructive" />
+        <h2 className="mb-2 text-lg font-semibold text-foreground">{t('exams.error')}</h2>
+        <p className="mb-6 text-sm text-muted-foreground">{error}</p>
+        <button
+          type="button"
+          onClick={refetch}
+          className="rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        >
+          {t('exams.retry')}
+        </button>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (exams.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
+        <ClipboardList className="mb-4 h-16 w-16 text-muted-foreground/50" />
+        <h2 className="mb-2 text-lg font-semibold text-foreground">{t('exams.noExams')}</h2>
+        <p className="text-sm text-muted-foreground">{t('exams.noExamsDesc')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6 px-4 py-4">
+      {/* Header with refresh button */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-lg font-bold text-foreground">{t('exams.title')}</h1>
+        <button
+          type="button"
+          onClick={refetch}
+          className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <RefreshCw className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Group info */}
+      {group && (
+        <div className="rounded-lg bg-muted px-3 py-2">
+          <span className="font-mono text-xs font-medium text-primary">
+            {group.groupCode}
+          </span>
+        </div>
+      )}
+
+      {/* Exam day groups */}
+      {sortedDates.map((date) => (
+        <ExamDayGroup
+          key={date}
+          date={date}
+          exams={examsByDate.get(date)!}
+          lang={lang}
+        />
+      ))}
+    </div>
+  );
+}
