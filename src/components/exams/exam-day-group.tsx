@@ -14,7 +14,6 @@ function formatDateHeader(isoDate: string, lang: 'ka' | 'en'): string {
   const date = new Date(isoDate + 'T00:00:00');
 
   if (lang === 'ka') {
-    // getDay() returns 0=Sunday, 1=Monday... need to map to GEORGIAN_DAYS (0=Monday)
     const jsDay = date.getDay();
     const dayIndex = jsDay === 0 ? 6 : jsDay - 1;
     const dayName = GEORGIAN_DAYS[dayIndex] || '';
@@ -34,11 +33,12 @@ export function ExamDayGroup({ date, exams, lang }: ExamDayGroupProps) {
 
   return (
     <div className="space-y-3">
-      <div className="sticky top-14 z-10 bg-background/95 py-2 backdrop-blur-sm">
-        <h2 className="text-sm font-semibold text-foreground">{headerText}</h2>
+      <div className="sticky top-14 z-10 -mx-4 px-4 sm:-mx-6 sm:px-6 py-2 backdrop-blur-xl bg-background/80">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{headerText}</h2>
+        <div className="mt-2 h-px bg-border/50" />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {exams.map((exam) => (
           <ExamCard key={exam.id} exam={exam} lang={lang} />
         ))}

@@ -20,7 +20,7 @@ function subjectColor(subject: string): string {
   }
 
   const hue = Math.abs(hash) % 360;
-  return `hsl(${hue}, 65%, 85%)`;
+  return `hsl(${hue}, 55%, 88%)`;
 }
 
 function subjectTextColor(subject: string): string {
@@ -31,7 +31,7 @@ function subjectTextColor(subject: string): string {
   }
 
   const hue = Math.abs(hash) % 360;
-  return `hsl(${hue}, 60%, 30%)`;
+  return `hsl(${hue}, 50%, 30%)`;
 }
 
 function timeToMinutes(time: string): number {
@@ -51,18 +51,11 @@ export function LectureBlock({ lecture, onClick, startHour, endHour }: LectureBl
   const bgColor = subjectColor(lecture.subject);
   const textColor = subjectTextColor(lecture.subject);
 
-  // Truncate subject to fit
-  const maxChars = duration < 60 ? 20 : 40;
-  const truncatedSubject =
-    lecture.subject.length > maxChars
-      ? lecture.subject.slice(0, maxChars) + '...'
-      : lecture.subject;
-
   return (
     <button
       type="button"
       onClick={() => onClick(lecture)}
-      className="absolute inset-x-1 overflow-hidden rounded-md border border-black/5 px-1.5 py-1 text-left transition-shadow hover:shadow-md"
+      className="absolute inset-x-1 overflow-hidden rounded-lg border border-black/5 px-2 py-1.5 text-left transition-all duration-200 hover:shadow-md active:scale-[0.98]"
       style={{
         top: `${topPercent}%`,
         height: `${heightPercent}%`,
@@ -71,16 +64,16 @@ export function LectureBlock({ lecture, onClick, startHour, endHour }: LectureBl
         color: textColor,
       }}
     >
-      <p className="truncate text-[10px] font-semibold leading-tight">
-        {truncatedSubject}
+      <p className="truncate text-[10px] font-bold leading-tight">
+        {lecture.subject}
       </p>
       {duration >= 45 && lecture.room && (
-        <p className="mt-0.5 truncate text-[9px] opacity-80">
+        <span className="mt-0.5 inline-block rounded bg-black/5 px-1 text-[9px] font-medium">
           {lecture.room}
-        </p>
+        </span>
       )}
       {duration >= 60 && (
-        <p className="mt-0.5 text-[9px] opacity-70">
+        <p className="mt-0.5 font-mono text-[9px] opacity-70">
           {lecture.startTime} - {lecture.endTime}
         </p>
       )}

@@ -31,10 +31,10 @@ export function YearPicker({ value, onChange, showMasters }: YearPickerProps) {
             type="button"
             onClick={() => onChange(year.value)}
             className={cn(
-              'flex h-14 w-14 items-center justify-center rounded-lg border-2 text-lg font-bold transition-all duration-200',
+              'flex h-16 w-20 items-center justify-center rounded-xl border-2 text-lg font-bold transition-all duration-200 min-h-[44px]',
               isSelected
-                ? 'border-primary bg-primary text-primary-foreground'
-                : 'border-border bg-card text-foreground hover:border-muted-foreground/50'
+                ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/25'
+                : 'border-border/50 bg-card text-foreground hover:border-muted-foreground/30 hover:shadow-sm'
             )}
           >
             {year.label}

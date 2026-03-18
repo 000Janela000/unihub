@@ -40,41 +40,43 @@ export function ExamCard({ exam, lang }: ExamCardProps) {
   return (
     <div
       className={cn(
-        'rounded-lg border border-border bg-card border-l-4 transition-all duration-200 hover:shadow-sm active:scale-[0.98]',
+        'rounded-xl border border-border/50 bg-card border-l-[3px] shadow-sm transition-all duration-200 hover:shadow-md',
         borderColorMap[exam.examType]
       )}
     >
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-start gap-2 sm:gap-3 p-3 sm:p-4 text-left min-h-[44px]"
+        className="flex w-full items-start gap-3 p-4 sm:p-5 text-left min-h-[44px]"
       >
         {/* Time column */}
         <div className="flex flex-shrink-0 flex-col items-center gap-0.5 pt-0.5">
-          <Clock className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs font-medium text-foreground">{exam.startTime}</span>
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted/60">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+          <span className="font-mono text-xs font-medium text-foreground">{exam.startTime}</span>
           {exam.endTime && (
-            <span className="text-[10px] text-muted-foreground">{exam.endTime}</span>
+            <span className="font-mono text-[10px] text-muted-foreground">{exam.endTime}</span>
           )}
         </div>
 
         {/* Content */}
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-1">
-            <h3 className="text-sm font-medium leading-tight text-card-foreground">
+            <h3 className="text-sm font-semibold leading-tight text-card-foreground">
               {exam.subjectClean}
             </h3>
             <span className="flex h-[44px] w-[44px] flex-shrink-0 items-center justify-center -mr-2 -mt-1">
               <ChevronDown
                 className={cn(
-                  'h-4 w-4 text-muted-foreground transition-transform duration-200',
+                  'h-4 w-4 text-muted-foreground transition-transform duration-300',
                   expanded && 'rotate-180'
                 )}
               />
             </span>
           </div>
 
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <div className="mt-2 flex flex-wrap items-center gap-2">
             <ExamTypeBadge type={exam.examType} label={exam.examTypeLabel} />
             <CountdownTimer targetDate={targetDate} lang={lang} />
           </div>
@@ -84,14 +86,14 @@ export function ExamCard({ exam, lang }: ExamCardProps) {
       {/* Expandable content */}
       <div
         className={cn(
-          'grid transition-[grid-template-rows] duration-200 ease-in-out',
+          'grid transition-[grid-template-rows] duration-300 ease-in-out',
           expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
         )}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-border px-3 sm:px-4 pb-3 sm:pb-4 pt-3">
+          <div className="border-t border-border/50 px-4 sm:px-5 pb-4 sm:pb-5 pt-4">
             {exam.subject !== exam.subjectClean && (
-              <p className="mb-2 text-xs text-muted-foreground">{exam.subject}</p>
+              <p className="mb-3 text-xs text-muted-foreground">{exam.subject}</p>
             )}
 
             {exam.lecturers.length > 0 && (
@@ -117,7 +119,7 @@ export function ExamCard({ exam, lang }: ExamCardProps) {
             )}
 
             {exam.studentCount > 0 && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Users className="h-3.5 w-3.5" />
                 <span>
                   {exam.studentCount} {lang === 'ka' ? 'სტუდენტი' : 'students'}
@@ -126,7 +128,7 @@ export function ExamCard({ exam, lang }: ExamCardProps) {
             )}
 
             {/* Action buttons */}
-            <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+            <div className="mt-4 flex items-center gap-2 border-t border-border/50 pt-4">
               <button
                 type="button"
                 onClick={(e) => {
@@ -134,10 +136,10 @@ export function ExamCard({ exam, lang }: ExamCardProps) {
                   handleCalendarExport();
                 }}
                 className={cn(
-                  'flex items-center gap-1.5 rounded-md px-3 min-h-[44px] text-xs font-medium transition-all duration-200',
+                  'flex items-center gap-1.5 rounded-xl px-4 min-h-[44px] text-xs font-medium transition-all duration-200',
                   calendarExported
                     ? 'bg-green-500/10 text-green-600 dark:text-green-400'
-                    : 'bg-muted text-foreground hover:bg-muted/80 active:scale-95'
+                    : 'border border-border/50 bg-card text-foreground hover:bg-muted active:scale-[0.98]'
                 )}
               >
                 <CalendarPlus className="h-4 w-4" />

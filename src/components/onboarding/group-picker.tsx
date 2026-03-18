@@ -19,8 +19,8 @@ export function GroupPicker({
   const { t } = useLanguage();
 
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3 sm:grid-cols-5 lg:grid-cols-8">
+    <div className="space-y-6">
+      <div className="flex flex-wrap justify-center gap-3">
         {Array.from({ length: maxGroups }, (_, i) => {
           const num = i + 1;
           const isSelected = value === num;
@@ -31,10 +31,10 @@ export function GroupPicker({
               type="button"
               onClick={() => onChange(num)}
               className={cn(
-                'flex h-14 items-center justify-center rounded-lg border-2 text-lg font-bold transition-all duration-200',
+                'flex h-16 w-16 items-center justify-center rounded-full border-2 text-lg font-bold transition-all duration-200 min-h-[44px]',
                 isSelected
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border bg-card text-foreground hover:border-muted-foreground/50'
+                  ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/25'
+                  : 'border-border/50 bg-card text-foreground hover:border-muted-foreground/30 hover:shadow-sm'
               )}
             >
               {String(num).padStart(2, '0')}
@@ -44,11 +44,11 @@ export function GroupPicker({
       </div>
 
       {groupCodePreview && (
-        <div className="rounded-lg bg-muted p-3 text-center">
+        <div className="rounded-xl bg-muted/60 p-4 text-center">
           <span className="text-xs text-muted-foreground">
             {t('onboarding.groupPreview')}:{' '}
           </span>
-          <span className="font-mono font-bold text-primary">
+          <span className="font-mono text-sm font-bold text-primary">
             {groupCodePreview}
           </span>
         </div>

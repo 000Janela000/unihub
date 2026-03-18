@@ -23,17 +23,20 @@ export function SidebarNav() {
   const { t } = useLanguage();
 
   return (
-    <aside className="hidden md:flex fixed left-0 top-0 z-40 h-screen w-60 flex-col border-r border-border bg-background">
+    <aside className="hidden md:flex fixed left-0 top-0 z-40 h-screen w-60 flex-col border-r border-border/50 backdrop-blur-xl bg-card/90">
       {/* App logo/title */}
-      <div className="flex h-14 items-center border-b border-border px-6">
-        <Link href="/exams" className="text-lg font-bold text-foreground">
+      <div className="flex h-14 items-center gap-3 border-b border-border/50 px-6">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+          U
+        </div>
+        <Link href="/exams" className="text-base font-semibold text-foreground">
           UniSchedule
         </Link>
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 px-3 py-4">
-        <ul className="space-y-1">
+      <nav className="flex-1 px-3 py-6">
+        <ul className="space-y-1.5">
           {navItems.map((item) => {
             const isActive = pathname.startsWith(item.href);
             const Icon = item.icon;
@@ -43,12 +46,15 @@ export function SidebarNav() {
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                    'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
                     isActive
-                      ? 'bg-accent text-primary'
-                      : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
                   )}
                 >
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-primary" />
+                  )}
                   <Icon className={cn('h-5 w-5', isActive && 'text-primary')} />
                   <span>{t(item.labelKey)}</span>
                 </Link>
@@ -57,6 +63,11 @@ export function SidebarNav() {
           })}
         </ul>
       </nav>
+
+      {/* Footer */}
+      <div className="border-t border-border/50 px-6 py-4">
+        <p className="text-[10px] text-muted-foreground/60">UniSchedule v1.0.0</p>
+      </div>
     </aside>
   );
 }

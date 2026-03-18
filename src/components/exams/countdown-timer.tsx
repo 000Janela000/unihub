@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { differenceInDays, differenceInHours } from 'date-fns';
+import { Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CountdownTimerProps {
@@ -15,7 +16,6 @@ function getCountdownText(target: Date, lang: 'ka' | 'en'): string {
   const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate());
 
   const daysDiff = differenceInDays(targetDay, today);
-  const hoursDiff = differenceInHours(target, now);
 
   if (daysDiff === 0) {
     const hours = target.getHours();
@@ -83,7 +83,8 @@ export function CountdownTimer({ targetDate, lang }: CountdownTimerProps) {
   }, [targetDate, lang]);
 
   return (
-    <span className={cn('text-xs', urgency)}>
+    <span className={cn('inline-flex items-center gap-1 text-xs', urgency)}>
+      <Clock className="h-3 w-3" />
       {text}
     </span>
   );

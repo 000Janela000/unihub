@@ -23,7 +23,7 @@ export function BottomNav() {
   const { t } = useLanguage();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background pb-[env(safe-area-inset-bottom)] md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 backdrop-blur-xl bg-background/80 pb-[env(safe-area-inset-bottom)] md:hidden">
       <div className="flex h-16 items-center justify-around">
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
@@ -40,10 +40,10 @@ export function BottomNav() {
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <Icon className={cn('h-5 w-5 transition-transform duration-200', isActive && 'scale-110')} />
-              <span>{t(item.labelKey)}</span>
+              <Icon className={cn('h-5 w-5 transition-all duration-200', isActive && 'scale-110')} />
+              <span className={cn('transition-all duration-200', isActive && 'font-medium')}>{t(item.labelKey)}</span>
               {isActive && (
-                <span className="absolute bottom-1 h-0.5 w-5 rounded-full bg-primary transition-all duration-300" />
+                <span className="absolute bottom-1.5 h-1 w-1 rounded-full bg-primary" />
               )}
             </Link>
           );

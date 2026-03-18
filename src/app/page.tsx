@@ -18,7 +18,6 @@ export default function HomePage() {
     if (!group) {
       router.replace('/onboarding');
     } else {
-      // Check if subjects have been selected
       let hasSubjects = false;
       try {
         const raw = window.localStorage.getItem(SUBJECTS_STORAGE_KEY);
@@ -44,9 +43,14 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-3">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <span className="text-sm text-muted-foreground">UniSchedule</span>
+      <div className="flex flex-col items-center gap-4 animate-scale-in">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-xl font-bold shadow-lg shadow-primary/20">
+          U
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-base font-semibold text-foreground">UniSchedule</span>
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
       </div>
     </div>
   );

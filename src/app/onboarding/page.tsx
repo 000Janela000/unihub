@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { StepIndicator } from '@/components/onboarding/step-indicator';
 import { UniversityToggle } from '@/components/onboarding/university-toggle';
@@ -102,31 +102,37 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background max-w-2xl mx-auto w-full">
+      {/* Green gradient accent at top */}
+      <div className="h-1 w-full bg-gradient-to-r from-primary/60 via-primary to-primary/60" />
+
       {/* Header area */}
-      <div className="px-4 pt-8 pb-4 text-center">
-        <h1 className="mb-4 text-xl font-bold text-foreground">UniSchedule</h1>
+      <div className="px-6 pt-10 pb-6 text-center">
+        <div className="mb-1 flex items-center justify-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
+            U
+          </div>
+          <h1 className="text-xl font-bold text-foreground">UniSchedule</h1>
+        </div>
+        <p className="mb-6 text-xs text-muted-foreground">agruni.edu.ge</p>
         <StepIndicator currentStep={step} totalSteps={TOTAL_STEPS} />
-        <p className="mt-4 text-sm text-muted-foreground">{stepTitles[step - 1]}</p>
+        <p className="mt-6 text-base font-semibold text-foreground">{stepTitles[step - 1]}</p>
       </div>
 
       {/* Step content with fade + slide transition */}
-      <div className="flex-1 overflow-hidden px-4">
+      <div className="flex-1 overflow-hidden px-6">
         <div
           ref={contentRef}
-          className="px-1 pt-4 transition-all duration-300 ease-in-out"
+          className="pt-2 transition-all duration-300 ease-out"
           style={{
             opacity: animating ? 0 : 1,
             transform: animating
-              ? `translateX(${direction === 'forward' ? '20px' : '-20px'})`
+              ? `translateX(${direction === 'forward' ? '24px' : '-24px'})`
               : 'translateX(0)',
           }}
         >
-          {/* Step 1: University */}
           {step === 1 && (
             <UniversityToggle value={university} onChange={setUniversity} />
           )}
-
-          {/* Step 2: Faculty */}
           {step === 2 && university && (
             <FacultyGrid
               university={university}
@@ -134,13 +140,9 @@ export default function OnboardingPage() {
               onChange={setFacultyId}
             />
           )}
-
-          {/* Step 3: Year */}
           {step === 3 && (
             <YearPicker value={year} onChange={setYear} />
           )}
-
-          {/* Step 4: Group */}
           {step === 4 && (
             <GroupPicker
               value={groupNumber}
@@ -152,12 +154,12 @@ export default function OnboardingPage() {
       </div>
 
       {/* Navigation buttons */}
-      <div className="flex gap-3 p-4 pb-8">
+      <div className="flex gap-3 px-6 py-6 pb-10">
         {step > 1 && (
           <button
             type="button"
             onClick={handleBack}
-            className="flex-1 rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+            className="flex-1 rounded-xl border border-border/50 bg-card px-4 py-3.5 text-sm font-medium text-foreground transition-all duration-200 hover:bg-muted active:scale-[0.98] min-h-[48px]"
           >
             {t('onboarding.back')}
           </button>
@@ -167,9 +169,9 @@ export default function OnboardingPage() {
           onClick={handleNext}
           disabled={!canGoNext}
           className={cn(
-            'flex-1 rounded-lg px-4 py-3 text-sm font-medium transition-colors',
+            'flex-1 rounded-xl px-4 py-3.5 text-sm font-semibold transition-all duration-200 min-h-[48px]',
             canGoNext
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] shadow-sm shadow-primary/25'
               : 'bg-muted text-muted-foreground cursor-not-allowed'
           )}
         >
