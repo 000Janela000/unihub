@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ChevronDown, Clock, Users } from 'lucide-react';
 import type { Exam } from '@/types';
 import { ExamType } from '@/types';
 import { ExamTypeBadge } from '@/components/exams/exam-type-badge';
 import { CountdownTimer } from '@/components/exams/countdown-timer';
+import { SeatInput, getSectionFromSeat } from '@/components/exam-room/seat-input';
+import { RoomMiniMap } from '@/components/exam-room/room-mini-map';
+import { getItem, setItem, STORAGE_KEYS } from '@/lib/storage';
 import { cn } from '@/lib/utils';
 
 interface ExamCardProps {
@@ -24,8 +27,30 @@ const borderColorMap: Record<ExamType, string> = {
 
 export function ExamCard({ exam, lang }: ExamCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [seat, setSeat] = useState('');
+  const [section, setSection] = useState<string | null>(null);
 
   const targetDate = new Date(`${exam.date}T${exam.startTime}:00`);
+
+  // Load saved seat on mount
+  useEffect(() => {
+    const storageKey = `${STORAGE_KEYS.EXAM_SEAT_PREFIX}${exam.id}`;
+    const saved = getItem<string>(storageKey, '');
+    if (saved) {
+      setSeat(saved);
+      setSection(getSectionFromSeat(saved));
+    }
+  }, [exam.id]);
+
+  const handleSeatChange = useCallback(
+    (newSeat: string) => {
+      setSeat(newSeat);
+      const storageKey = `${STORAGE_KEYS.EXAM_SEAT_PREFIX}${exam.id}`;
+      setItem(storageKey, newSeat);
+      setSection(getSectionFromSeat(newSeat));
+    },
+    [exam.id]
+  );
 
   return (
     <div
@@ -116,6 +141,20 @@ export function ExamCard({ exam, lang }: ExamCardProps) {
                 </span>
               </div>
             )}
+
+            {/* Seat & Room Map */}
+            <div className="mt-3 border-t border-border pt-3">
+              <SeatInput
+                examId={exam.id}
+                onSeatChange={handleSeatChange}
+                initialValue={seat}
+              />
+              {section && (
+                <div className="mt-2">
+                  <RoomMiniMap highlightSection={section} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

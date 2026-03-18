@@ -1,16 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans, Geist } from "next/font/google";
+import { Noto_Sans } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/i18n";
 import { Header } from "@/components/layout/header";
 import { BottomNav } from "@/components/layout/bottom-nav";
-import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const notoSans = Noto_Sans({
-  subsets: ["latin"],
-  variable: "--font-noto-sans",
+  subsets: ["latin", "cyrillic"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
   display: "swap",
 });
 
@@ -25,23 +23,20 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ka" suppressHydrationWarning className={cn("font-sans", geist.variable)}>
-      <body className={`${notoSans.variable} antialiased`}>
+    <html lang="ka" suppressHydrationWarning>
+      <body className={`${notoSans.variable} font-sans antialiased`}>
         <LanguageProvider>
           <Header />
-          <main className="pt-14 pb-20">{children}</main>
+          <main className="pt-14 pb-20 min-h-screen">{children}</main>
           <BottomNav />
         </LanguageProvider>
       </body>
     </html>
   );
 }
-
-// Next.js App Router requires a default export for layouts
-export default RootLayout;

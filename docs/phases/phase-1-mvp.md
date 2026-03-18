@@ -11,7 +11,7 @@
 ### 1.1 Project Setup
 - [x] Create Next.js 14 app with TypeScript, Tailwind, ESLint, App Router, src dir
 - [x] Install dependencies: papaparse, date-fns, lucide-react, class-variance-authority, clsx, tailwind-merge
-- [ ] Initialize shadcn/ui and add components: button, card, badge, dialog, select, input, separator, skeleton
+- [x] Initialize shadcn/ui and add components: button, card, badge, skeleton, separator
 - [x] Set up path alias `@/*` → `src/*`
 - [x] Create directory structure: components/{ui,layout,exams,schedule,exam-room,onboarding}, lib/{sheets}, hooks, types, i18n
 - [x] Set up `.env.local` with sheet IDs

@@ -111,6 +111,8 @@ Specs: `openspec/specs/`
 
 Progress tracked in `docs/phases/` directory. Each phase has its own document with task checkboxes. Current status is always visible in `docs/PROGRESS.md`.
 
+**IMPORTANT**: Commit after every phase is confirmed by the user. Do NOT start the next phase until the current phase is committed. Workflow: complete phase → present summary → user confirms → git commit → start next phase.
+
 ## Environment
 
 ```
