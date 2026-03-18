@@ -1,0 +1,14 @@
+{
+  "name": "UniSchedule - \u10d2\u10d0\u10db\u10dd\u10ea\u10d3\u10d4\u10d1\u10d8\u10e1 \u10ea\u10ee\u10e0\u10d8\u10da\u10d8",
+  "short_name": "UniSchedule",
+  "description": "\u10d0\u10d2\u10e0\u10d0\u10e0\u10e3\u10da\u10d8 \u10e3\u10dc\u10d8\u10d5\u10d4\u10e0\u10e1\u10d8\u10e2\u10d4\u10e2\u10d8\u10e1 \u10ea\u10ee\u10e0\u10d8\u10da\u10d8 \u10d3\u10d0 \u10d2\u10d0\u10db\u10dd\u10ea\u10d3\u10d4\u10d1\u10d8",
+  "start_url": "/exams",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

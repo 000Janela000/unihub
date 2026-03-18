@@ -2,11 +2,12 @@
 
 import { useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { ChevronRight, Sun, Moon, Monitor, Globe, Github, Upload, Trash2, FileSpreadsheet } from 'lucide-react';
+import { ChevronRight, Sun, Moon, Monitor, Globe, Github, Upload, Trash2, FileSpreadsheet, Bell } from 'lucide-react';
 import { useUserGroup } from '@/hooks/use-user-group';
 import { useTheme } from '@/hooks/use-theme';
 import { useLanguage } from '@/i18n';
 import { useSchedule } from '@/hooks/use-schedule';
+import { useNotifications } from '@/hooks/use-notifications';
 import { parseLectureFile } from '@/lib/sheets/parse-lectures';
 import { cn } from '@/lib/utils';
 
@@ -16,8 +17,10 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { lang, setLang, t } = useLanguage();
   const { allLectures, setLectures, clearLectures } = useSchedule();
+  const { supported: pushSupported, permission: pushPermission, subscribed, subscribe, unsubscribe } = useNotifications();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+  const [notifTimings, setNotifTimings] = useState<string[]>(['1d', '2h']);
 
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,6 +147,78 @@ export default function SettingsPage() {
             className="hidden"
             aria-label={t('settings.uploadSchedule')}
           />
+        </div>
+      </section>
+
+      {/* Notifications */}
+      <section className="rounded-lg border border-border bg-card">
+        <div className="p-4">
+          <div className="mb-3 flex items-center gap-2">
+            <Bell className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-medium text-card-foreground">
+              {t('notifications.title')}
+            </h2>
+          </div>
+
+          {!pushSupported ? (
+            <p className="text-xs text-muted-foreground">
+              Push notifications are not supported in this browser.
+            </p>
+          ) : pushPermission === 'denied' ? (
+            <p className="text-xs text-destructive">
+              {t('notifications.permissionDenied')}
+            </p>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={subscribed ? unsubscribe : subscribe}
+                className={cn(
+                  'mb-3 w-full rounded-lg px-4 py-2.5 text-sm font-medium transition-colors',
+                  subscribed
+                    ? 'bg-destructive/10 text-destructive hover:bg-destructive/20'
+                    : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                )}
+              >
+                {subscribed ? t('notifications.disable') : t('notifications.enable')}
+              </button>
+
+              {subscribed && (
+                <div>
+                  <p className="mb-2 text-xs font-medium text-card-foreground">
+                    {t('notifications.timing')}
+                  </p>
+                  <div className="space-y-2">
+                    {[
+                      { key: '1w', label: t('notifications.oneWeek') },
+                      { key: '3d', label: t('notifications.threeDays') },
+                      { key: '1d', label: t('notifications.oneDay') },
+                      { key: '2h', label: t('notifications.twoHours') },
+                    ].map(({ key, label }) => (
+                      <label
+                        key={key}
+                        className="flex items-center gap-2 text-xs text-foreground"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={notifTimings.includes(key)}
+                          onChange={(e) => {
+                            setNotifTimings((prev) =>
+                              e.target.checked
+                                ? [...prev, key]
+                                : prev.filter((t) => t !== key)
+                            );
+                          }}
+                          className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                        />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </section>
 

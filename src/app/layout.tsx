@@ -4,6 +4,8 @@ import "./globals.css";
 import { LanguageProvider } from "@/i18n";
 import { Header } from "@/components/layout/header";
 import { BottomNav } from "@/components/layout/bottom-nav";
+import { InstallPrompt } from "@/components/layout/install-prompt";
+import { ServiceWorkerRegistrar } from "@/components/layout/sw-registrar";
 
 const notoSans = Noto_Sans({
   subsets: ["latin", "cyrillic"],
@@ -15,6 +17,15 @@ const notoSans = Noto_Sans({
 export const metadata: Metadata = {
   title: "UniSchedule",
   description: "University schedule & exam tracker for Agricultural University of Georgia",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "UniSchedule",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
@@ -30,9 +41,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ka" suppressHydrationWarning>
+      <head>
+        <meta name="theme-color" content="#16a34a" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+      </head>
       <body className={`${notoSans.variable} font-sans antialiased`}>
         <LanguageProvider>
+          <ServiceWorkerRegistrar />
           <Header />
+          <InstallPrompt />
           <main className="pt-14 pb-20 min-h-screen">{children}</main>
           <BottomNav />
         </LanguageProvider>
