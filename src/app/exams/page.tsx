@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import { RefreshCw, AlertCircle, ClipboardList, Download, Search } from 'lucide-react';
 import { useExams } from '@/hooks/use-exams';
 import { useUserGroup } from '@/hooks/use-user-group';

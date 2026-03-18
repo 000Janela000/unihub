@@ -31,7 +31,6 @@ export default function SchedulePage() {
   }, []);
 
   const { lectures, loading, error, weekSchedule, refetch } = useSchedule(selectedSubjects);
-  }, []);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
