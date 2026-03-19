@@ -101,14 +101,7 @@ export default function OnboardingPage() {
       <div className="h-1 w-full bg-gradient-to-r from-primary/60 via-primary to-primary/60" />
 
       {/* Header area */}
-      <div className="px-6 pt-6 pb-3 text-center">
-        <div className="mb-1 flex items-center justify-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
-            U
-          </div>
-          <h1 className="text-xl font-bold text-foreground">UniHub</h1>
-        </div>
-        <p className="mb-3 text-xs text-muted-foreground">agruni.edu.ge</p>
+      <div className="px-6 pt-4 pb-2 text-center">
         <StepIndicator currentStep={step} totalSteps={TOTAL_STEPS} />
         <p className="mt-3 text-base font-semibold text-foreground">{stepTitles[step - 1]}</p>
       </div>
