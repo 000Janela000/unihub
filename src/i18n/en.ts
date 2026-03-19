@@ -2,9 +2,13 @@ import type { TranslationKeys } from './ka';
 
 export const en: TranslationKeys = {
   nav: {
+    dashboard: 'Dashboard',
     exams: 'Exams',
     schedule: 'Schedule',
     settings: 'Settings',
+    grades: 'Grades',
+    conspects: 'Conspects',
+    more: 'More',
   },
   onboarding: {
     welcomeTitle: 'Welcome to UniHub',
@@ -156,6 +160,22 @@ export const en: TranslationKeys = {
     title: 'Profile',
     signOut: 'Sign Out',
     changeGroup: 'Change Group',
+  },
+  dashboard: {
+    greeting: 'Hello',
+    todaySchedule: "Today's Schedule",
+    upcomingExams: 'Upcoming Exams',
+    gpa: 'GPA',
+    quickLinks: 'Quick Links',
+    recentConspects: 'Recent Conspects',
+    noClassesToday: 'No classes today',
+    noExamsScheduled: 'No exams scheduled',
+    connectEmis: 'Connect EMIS',
+    connectEmisDesc: 'Connect EMIS to view GPA',
+    emis: 'EMIS',
+    email: 'Email',
+    library: 'Library',
+    website: 'Website',
   },
   common: {
     appName: 'UniHub',

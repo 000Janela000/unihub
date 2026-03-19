@@ -1,8 +1,12 @@
 export const ka = {
   nav: {
+    dashboard: 'მთავარი',
     exams: 'გამოცდები',
     schedule: 'ცხრილი',
     settings: 'პარამეტრები',
+    grades: 'ნიშნები',
+    conspects: 'კონსპექტები',
+    more: 'მეტი',
   },
   onboarding: {
     welcomeTitle: 'კეთილი იყოს შენი მობრძანება UniHub-ში',
@@ -154,6 +158,22 @@ export const ka = {
     title: 'პროფილი',
     signOut: 'გასვლა',
     changeGroup: 'ჯგუფის შეცვლა',
+  },
+  dashboard: {
+    greeting: 'გამარჯობა',
+    todaySchedule: 'დღის ცხრილი',
+    upcomingExams: 'მომავალი გამოცდები',
+    gpa: 'GPA',
+    quickLinks: 'სწრაფი ბმულები',
+    recentConspects: 'ბოლო კონსპექტები',
+    noClassesToday: 'დღეს ლექციები არ არის',
+    noExamsScheduled: 'გამოცდები არ არის დაგეგმილი',
+    connectEmis: 'EMIS-თან დაკავშირება',
+    connectEmisDesc: 'GPA-ს სანახავად დააკავშირეთ EMIS',
+    emis: 'EMIS',
+    email: 'ელ-ფოსტა',
+    library: 'ბიბლიოთეკა',
+    website: 'ვებგვერდი',
   },
   common: {
     appName: 'UniHub',

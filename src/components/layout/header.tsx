@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useLanguage } from '@/i18n';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const pageTitles: Record<string, string> = {
   '/exams': 'nav.exams',
@@ -24,40 +25,37 @@ export function Header() {
     setMounted(true);
   }, []);
 
+  // Don't show header on dashboard home, login, or onboarding
+  if (pathname === '/' || pathname === '/login' || pathname.startsWith('/onboarding')) {
+    return null;
+  }
+
   const titleKey = Object.entries(pageTitles).find(([path]) => pathname.startsWith(path))?.[1];
 
-  const avatar = mounted && session?.user?.image ? (
-    <Link
-      href="/profile"
-      className="flex h-9 w-9 items-center justify-center rounded-full overflow-hidden transition-all duration-200 hover:ring-2 hover:ring-primary/30"
-    >
-      <img
-        src={session.user.image}
-        alt=""
-        className="h-8 w-8 rounded-full"
-        referrerPolicy="no-referrer"
-      />
-    </Link>
-  ) : (
-    <div className="h-8 w-8 rounded-full bg-muted" />
-  );
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 flex h-14 items-center justify-between border-b border-border/50 backdrop-blur-xl bg-background/80 px-4 sm:px-6 md:left-60 md:px-6">
-      <Link href="/exams" className="text-lg font-semibold text-foreground md:hidden">
+    <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-border backdrop-blur-xl bg-background/80 px-4 sm:px-6 shrink-0">
+      {/* Mobile: app name */}
+      <Link href="/" className="text-lg font-semibold text-foreground lg:hidden">
         UniHub
       </Link>
-      {/* Desktop: show current page title */}
-      <h1 className="hidden md:block text-sm font-medium text-muted-foreground">
-        {titleKey ? t(titleKey) : ''}
+      {/* Desktop: current page title */}
+      <h1 className="hidden lg:block text-sm font-medium text-muted-foreground">
+        {mounted && titleKey ? t(titleKey) : ''}
       </h1>
-      {/* Mobile: avatar */}
-      <div className="md:hidden">
-        {avatar}
-      </div>
-      {/* Desktop: avatar */}
-      <div className="hidden md:block">
-        {avatar}
+      {/* Avatar */}
+      <div>
+        {mounted && session?.user ? (
+          <Link href="/profile">
+            <Avatar className="h-8 w-8 border border-border transition-all hover:ring-2 hover:ring-primary/30">
+              <AvatarImage src={session.user.image || undefined} alt="" referrerPolicy="no-referrer" />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                {(session.user.name || 'U').slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+          </Link>
+        ) : (
+          <div className="h-8 w-8 rounded-full bg-muted" />
+        )}
       </div>
     </header>
   );

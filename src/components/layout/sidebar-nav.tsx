@@ -3,7 +3,13 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardList, Calendar, Settings, User } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Calendar,
+  GraduationCap,
+  User,
+  Settings,
+} from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useLanguage } from '@/i18n';
 import { cn } from '@/lib/utils';
@@ -11,12 +17,13 @@ import { cn } from '@/lib/utils';
 interface NavItem {
   href: string;
   labelKey: string;
-  icon: typeof ClipboardList;
+  icon: typeof LayoutDashboard;
 }
 
 const navItems: NavItem[] = [
-  { href: '/exams', labelKey: 'nav.exams', icon: ClipboardList },
+  { href: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
   { href: '/schedule', labelKey: 'nav.schedule', icon: Calendar },
+  { href: '/exams', labelKey: 'nav.exams', icon: GraduationCap },
   { href: '/settings', labelKey: 'nav.settings', icon: Settings },
   { href: '/profile', labelKey: 'profile.title', icon: User },
 ];
@@ -31,68 +38,87 @@ export function SidebarNav() {
     setMounted(true);
   }, []);
 
-  // Don't render on server to avoid hydration mismatch from i18n
+  // Hide on login and onboarding pages
+  if (pathname === '/login' || pathname.startsWith('/onboarding')) {
+    return null;
+  }
+
   if (!mounted) {
     return (
-      <aside className="hidden md:flex fixed left-0 top-0 z-40 h-screen w-60 flex-col border-r border-border/50 bg-card/90" />
+      <aside className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-60 flex-col border-r border-border bg-sidebar" />
     );
   }
 
   return (
-    <aside className="hidden md:flex fixed left-0 top-0 z-40 h-screen w-60 flex-col border-r border-border/50 backdrop-blur-xl bg-card/90">
-      <div className="flex h-14 items-center gap-3 border-b border-border/50 px-6">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold">
-          U
-        </div>
-        <Link href="/exams" className="text-base font-semibold text-foreground">
+    <aside className="hidden lg:flex fixed left-0 top-0 z-40 h-screen w-60 flex-col border-r border-border bg-sidebar">
+      {/* Logo */}
+      <div className="flex h-16 items-center gap-3 border-b border-border px-6">
+        <img
+          src="/icons/icon-512.png"
+          alt="UniHub"
+          className="h-8 w-8 rounded-lg"
+        />
+        <Link href="/" className="text-lg font-semibold text-sidebar-foreground">
           UniHub
         </Link>
       </div>
 
-      <nav className="flex-1 px-3 py-6">
-        <ul className="space-y-1.5">
-          {navItems.map((item) => {
-            const isActive = pathname.startsWith(item.href);
-            const Icon = item.icon;
+      {/* Navigation */}
+      <nav className="flex-1 space-y-1 p-4">
+        {navItems.map((item) => {
+          const isActive = item.href === '/'
+            ? pathname === '/'
+            : pathname.startsWith(item.href);
+          const Icon = item.icon;
 
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
-                    isActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
-                  )}
-                >
-                  {isActive && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-full bg-primary" />
-                  )}
-                  <Icon className={cn('h-5 w-5', isActive && 'text-primary')} />
-                  <span>{t(item.labelKey)}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                isActive
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+              )}
+            >
+              <Icon className={cn('h-5 w-5', isActive && 'text-primary')} />
+              <span>{t(item.labelKey)}</span>
+            </Link>
+          );
+        })}
       </nav>
 
-      <div className="border-t border-border/50 px-4 py-4">
-        {mounted && session?.user && (
-          <Link href="/profile" className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-accent/60 transition-all duration-200 mb-2">
+      {/* Footer with user info */}
+      <div className="border-t border-border p-4">
+        {session?.user && (
+          <Link
+            href="/profile"
+            className="mb-2 flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-sidebar-accent"
+          >
             {session.user.image ? (
-              <img src={session.user.image} alt="" className="h-8 w-8 rounded-full" referrerPolicy="no-referrer" />
+              <img
+                src={session.user.image}
+                alt=""
+                className="h-8 w-8 rounded-full"
+                referrerPolicy="no-referrer"
+              />
             ) : (
               <div className="h-8 w-8 rounded-full bg-muted" />
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium text-foreground truncate">{session.user.name}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{session.user.email}</p>
+              <p className="truncate text-xs font-medium text-sidebar-foreground">
+                {session.user.name}
+              </p>
+              <p className="truncate text-[10px] text-muted-foreground">
+                {session.user.email}
+              </p>
             </div>
           </Link>
         )}
-        <p className="text-[10px] text-muted-foreground/60 px-2">UniHub v1.0.0</p>
+        <p className="px-2 text-center text-xs text-muted-foreground">
+          UniHub v1.0
+        </p>
       </div>
     </aside>
   );

@@ -157,7 +157,7 @@ export default function ExamsPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 px-4 py-6 sm:px-6">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 px-4 py-6 pb-24 sm:px-6 lg:pb-8">
       {/* Header */}
       <div className="flex items-center justify-between animate-slide-up">
         <h1 className="text-lg font-semibold text-foreground">{t('exams.title')}</h1>

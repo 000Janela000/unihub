@@ -41,7 +41,7 @@ export default function ProfilePage() {
     : null;
 
   return (
-    <div className="flex flex-1 flex-col items-center px-4 py-8">
+    <div className="flex flex-1 flex-col items-center px-4 py-8 pb-24 lg:pb-8">
       <div className="w-full max-w-sm space-y-6">
         {/* Profile card */}
         <div className="rounded-2xl border border-border/50 bg-card p-6">

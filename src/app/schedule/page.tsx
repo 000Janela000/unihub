@@ -105,7 +105,7 @@ export default function SchedulePage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto flex flex-col px-3 sm:px-4 pb-2 w-full animate-fade-in">
+    <div className="max-w-6xl mx-auto flex flex-col px-3 sm:px-4 pb-24 lg:pb-8 w-full animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between py-4">
         <h1 className="text-lg font-semibold text-foreground">{t('schedule.title')}</h1>

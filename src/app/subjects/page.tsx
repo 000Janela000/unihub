@@ -136,7 +136,7 @@ export default function SubjectsPage() {
   const otherSubjects = allSubjects.filter(s => !groupSubjects.includes(s));
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 sm:px-6">
+    <div className="max-w-2xl mx-auto px-4 py-6 pb-24 sm:px-6 lg:pb-8">
       <div className="mb-4 animate-slide-up">
         <h1 className="text-lg font-semibold text-foreground">
           {t('subjects.title')}

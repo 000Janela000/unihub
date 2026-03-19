@@ -18,7 +18,7 @@ export default function SettingsPage() {
   const [notifTimings, setNotifTimings] = useState<string[]>(['1d', '2h']);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 px-4 py-6 sm:px-6">
+    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6 px-4 py-6 pb-24 sm:px-6 lg:pb-8">
       <h1 className="text-lg font-semibold text-foreground animate-slide-up">{t('settings.title')}</h1>
 
       {/* My Group */}

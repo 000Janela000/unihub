@@ -2,10 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { Noto_Sans } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/i18n";
-import { Header } from "@/components/layout/header";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
-import { InstallPrompt } from "@/components/layout/install-prompt";
+import { MainContent } from "@/components/layout/main-content";
 import { ServiceWorkerRegistrar } from "@/components/layout/sw-registrar";
 import { AuthSessionProvider } from "@/components/auth/session-provider";
 
@@ -56,13 +55,9 @@ export default function RootLayout({
         <AuthSessionProvider>
         <LanguageProvider>
           <ServiceWorkerRegistrar />
-          <div className="md:flex">
+          <div className="flex h-screen bg-background">
             <SidebarNav />
-            <div className="flex-1 md:ml-60">
-              <Header />
-              <InstallPrompt />
-              <main className="pt-14 pb-20 md:pb-8 min-h-screen flex flex-col">{children}</main>
-            </div>
+            <MainContent>{children}</MainContent>
           </div>
           <BottomNav />
         </LanguageProvider>
