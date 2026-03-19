@@ -143,6 +143,18 @@ export const ka = {
     exported: 'ექსპორტირებულია!',
     downloading: 'იტვირთება...',
   },
+  login: {
+    title: 'UniHub',
+    subtitle: 'სტუდენტის პორტალი',
+    signInGoogle: 'Google-ით შესვლა',
+    onlyAgruni: 'მხოლოდ @agruni.edu.ge ელ-ფოსტა',
+    signInError: 'შესვლა ვერ მოხერხდა',
+  },
+  profile: {
+    title: 'პროფილი',
+    signOut: 'გასვლა',
+    changeGroup: 'ჯგუფის შეცვლა',
+  },
   common: {
     appName: 'UniHub',
     loading: 'იტვირთება...',

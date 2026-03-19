@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { FacultyGrid } from '@/components/onboarding/faculty-grid';
 import { StepIndicator } from '@/components/onboarding/step-indicator';
 import { YearPicker } from '@/components/onboarding/year-picker';
@@ -16,6 +17,13 @@ const TOTAL_STEPS = 2;
 export default function OnboardingPage() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { status } = useSession();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/login');
+    }
+  }, [status, router]);
 
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');

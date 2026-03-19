@@ -145,6 +145,18 @@ export const en: TranslationKeys = {
     exported: 'Exported!',
     downloading: 'Downloading...',
   },
+  login: {
+    title: 'UniHub',
+    subtitle: 'Student Portal',
+    signInGoogle: 'Sign in with Google',
+    onlyAgruni: 'Only @agruni.edu.ge emails',
+    signInError: 'Sign in failed',
+  },
+  profile: {
+    title: 'Profile',
+    signOut: 'Sign Out',
+    changeGroup: 'Change Group',
+  },
   common: {
     appName: 'UniHub',
     loading: 'Loading...',

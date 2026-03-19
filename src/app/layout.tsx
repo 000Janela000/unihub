@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/layout/bottom-nav";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { InstallPrompt } from "@/components/layout/install-prompt";
 import { ServiceWorkerRegistrar } from "@/components/layout/sw-registrar";
+import { AuthSessionProvider } from "@/components/auth/session-provider";
 
 const notoSans = Noto_Sans({
   subsets: ["latin", "cyrillic"],
@@ -52,6 +53,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.png" type="image/png" />
       </head>
       <body className={`${notoSans.variable} font-sans antialiased`} suppressHydrationWarning>
+        <AuthSessionProvider>
         <LanguageProvider>
           <ServiceWorkerRegistrar />
           <div className="md:flex">
@@ -64,6 +66,7 @@ export default function RootLayout({
           </div>
           <BottomNav />
         </LanguageProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

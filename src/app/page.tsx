@@ -2,17 +2,25 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { getItem, STORAGE_KEYS } from '@/lib/storage';
 import type { UserGroup } from '@/types';
 
 const SUBJECTS_STORAGE_KEY = 'unischedule_subjects';
 
-// Next.js App Router requires a default export for pages
 export default function HomePage() {
   const router = useRouter();
+  const { status } = useSession();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (status === 'loading') return;
+
+    if (status === 'unauthenticated') {
+      router.replace('/login');
+      return;
+    }
+
     const group = getItem<UserGroup | null>(STORAGE_KEYS.USER_GROUP, null);
 
     if (!group) {
@@ -37,7 +45,7 @@ export default function HomePage() {
     }
 
     setLoading(false);
-  }, [router]);
+  }, [router, status]);
 
   if (!loading) return null;
 

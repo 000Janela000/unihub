@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardList, Calendar, Settings } from 'lucide-react';
+import { ClipboardList, Calendar, Settings, User } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useLanguage } from '@/i18n';
 import { cn } from '@/lib/utils';
 
@@ -17,11 +18,13 @@ const navItems: NavItem[] = [
   { href: '/exams', labelKey: 'nav.exams', icon: ClipboardList },
   { href: '/schedule', labelKey: 'nav.schedule', icon: Calendar },
   { href: '/settings', labelKey: 'nav.settings', icon: Settings },
+  { href: '/profile', labelKey: 'profile.title', icon: User },
 ];
 
 export function SidebarNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -75,8 +78,21 @@ export function SidebarNav() {
         </ul>
       </nav>
 
-      <div className="border-t border-border/50 px-6 py-4">
-        <p className="text-[10px] text-muted-foreground/60">UniHub v1.0.0</p>
+      <div className="border-t border-border/50 px-4 py-4">
+        {mounted && session?.user && (
+          <Link href="/profile" className="flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-accent/60 transition-all duration-200 mb-2">
+            {session.user.image ? (
+              <img src={session.user.image} alt="" className="h-8 w-8 rounded-full" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-muted" />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-foreground truncate">{session.user.name}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{session.user.email}</p>
+            </div>
+          </Link>
+        )}
+        <p className="text-[10px] text-muted-foreground/60 px-2">UniHub v1.0.0</p>
       </div>
     </aside>
   );
