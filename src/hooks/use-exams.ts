@@ -31,7 +31,9 @@ export function useExams(
     setLoading(true);
     setError(null);
 
-    const cached = getItem<CachedExams | null>(STORAGE_KEYS.EXAM_CACHE, null);
+    // Cache key includes group so switching groups doesn't serve stale data
+    const cacheKey = `${STORAGE_KEYS.EXAM_CACHE}_${group}`;
+    const cached = getItem<CachedExams | null>(cacheKey, null);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       setRawExams(cached.data);
       setLoading(false);
@@ -56,7 +58,8 @@ export function useExams(
       });
 
       setRawExams(sorted);
-      setItem(STORAGE_KEYS.EXAM_CACHE, { data: sorted, timestamp: Date.now() });
+      const cacheKey = `${STORAGE_KEYS.EXAM_CACHE}_${group}`;
+      setItem(cacheKey, { data: sorted, timestamp: Date.now() });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch exams';
       setError(message);
