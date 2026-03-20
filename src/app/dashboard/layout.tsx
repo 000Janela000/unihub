@@ -11,6 +11,7 @@ import {
   Calendar,
   FileText,
   GraduationCap,
+  BookOpen,
   Settings,
   MoreHorizontal,
   Moon,
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/dashboard/schedule", label: "ცხრილი", icon: Calendar },
   { href: "/dashboard/exams", label: "გამოცდები", icon: FileText },
   { href: "/dashboard/grades", label: "ნიშნები", icon: GraduationCap },
+  { href: "/dashboard/conspects", label: "კონსპექტები", icon: BookOpen },
   { href: "/dashboard/settings", label: "პარამეტრები", icon: Settings },
 ];
 
