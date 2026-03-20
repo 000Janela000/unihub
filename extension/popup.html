@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ka">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 280px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #1a2e1a;
+      color: #e8f0e8;
+      padding: 20px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #22c55e, #a3e635);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+      color: #1a2e1a;
+    }
+    .title { font-size: 16px; font-weight: 600; }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .status.connected { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+    .status.waiting { background: rgba(234, 179, 8, 0.15); color: #facc15; }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .dot.green { background: #22c55e; }
+    .dot.yellow { background: #eab308; animation: pulse 2s infinite; }
+    .meta {
+      font-size: 11px;
+      color: #8a9a8a;
+      padding: 0 4px;
+    }
+    a {
+      display: block;
+      text-align: center;
+      margin-top: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #22c55e;
+      color: #1a2e1a;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    a:hover { background: #16a34a; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">U</div>
+    <div class="title">UniHub</div>
+  </div>
+
+  <div id="status" class="status waiting">
+    <div class="dot yellow"></div>
+    <span>EMIS-თან დაკავშირება...</span>
+  </div>
+
+  <div id="meta" class="meta"></div>
+
+  <a href="https://unihub-edu.vercel.app/dashboard" target="_blank">UniHub-ის გახსნა</a>
+
+  <script src="popup.js"></script>
+</body>
+</html>
