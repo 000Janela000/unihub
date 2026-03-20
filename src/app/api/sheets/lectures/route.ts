@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx';
 import type { Lecture } from '@/types';
 
 const LECTURE_FILE_ID = process.env.LECTURE_SHEET_ID || '1PY7AyDut0EjvzIW6C6bLH-2iFYIbLVau';
-const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 const TARGET_SHEET = 'Total Schedule as a List';
 const FILE_CACHE = 'lectures.json';
 
@@ -48,7 +48,7 @@ async function fetchLectures(): Promise<Lecture[]> {
   }
 
   // Check file cache
-  const fileCached = readFileCache<Lecture[]>(FILE_CACHE);
+  const fileCached = readFileCache<Lecture[]>(FILE_CACHE, CACHE_TTL);
   if (fileCached) {
     console.log(`[lectures] File cache hit: ${fileCached.length} lectures`);
     cachedData = { lectures: fileCached, timestamp: Date.now() };

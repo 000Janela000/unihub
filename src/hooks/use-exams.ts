@@ -10,7 +10,7 @@ interface CachedExams {
   timestamp: number;
 }
 
-const CACHE_TTL = 15 * 60 * 1000;
+const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours client-side
 
 export function useExams(
   group: string | null,
