@@ -15,6 +15,12 @@ interface EmisStatus {
 /**
  * Hook to interact with the UniHub EMIS Chrome Extension.
  * Flow: Extension captures EMIS token → webapp reads it → sends to API → stored in httpOnly cookie.
+ *
+ * Token refresh: when a proxy call returns 401, the hook:
+ * 1. Deletes the stale cookie
+ * 2. Opens EMIS in a new tab (Google OAuth auto-logs in)
+ * 3. Extension captures fresh token
+ * 4. When user returns, auto-syncs on next call
  */
 export function useEmis() {
   const [status, setStatus] = useState<EmisStatus>({ connected: false, lastSync: null });
@@ -71,7 +77,7 @@ export function useEmis() {
           { type: "GET_EMIS_TOKEN" },
           async (response) => {
             if (chrome.runtime.lastError || !response?.token) {
-              setError("EMIS ტოკენი ვერ მოიძებნა. გახსენით emis.campus.edu.ge და შედით სისტემაში.");
+              setError("EMIS-თან კავშირი ვერ მოიძებნა. გახსენით emis.campus.edu.ge და შედით სისტემაში.");
               setLoading(false);
               resolve(false);
               return;
@@ -89,7 +95,7 @@ export function useEmis() {
                 setLoading(false);
                 resolve(true);
               } else {
-                setError("ტოკენის შენახვა ვერ მოხერხდა");
+                setError("კავშირის შენახვა ვერ მოხერხდა");
                 setLoading(false);
                 resolve(false);
               }
@@ -109,22 +115,85 @@ export function useEmis() {
   }, [hasExtension]);
 
   /**
+   * Try to silently refresh the token from the extension.
+   * Returns true if a fresh token was saved.
+   */
+  const trySilentRefresh = useCallback(async (): Promise<boolean> => {
+    if (!EXTENSION_ID || !hasExtension) return false;
+
+    return new Promise((resolve) => {
+      try {
+        chrome.runtime.sendMessage(
+          EXTENSION_ID,
+          { type: "GET_EMIS_TOKEN" },
+          async (response) => {
+            if (chrome.runtime.lastError || !response?.token) {
+              resolve(false);
+              return;
+            }
+
+            try {
+              const res = await fetch("/api/emis/token", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: response.token }),
+              });
+              resolve(res.ok);
+            } catch {
+              resolve(false);
+            }
+          }
+        );
+      } catch {
+        resolve(false);
+      }
+    });
+  }, [hasExtension]);
+
+  /**
    * Call an EMIS API endpoint through our proxy.
+   * On 401 (expired token): tries silent refresh from extension, then retries once.
+   * On 403 (no token): throws so caller can show setup prompt.
    */
   const callEmis = useCallback(async (endpoint: string, body?: object) => {
-    const res = await fetch("/api/emis/proxy", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ endpoint, method: body ? "POST" : "GET", body }),
-    });
+    const doCall = async () => {
+      const res = await fetch("/api/emis/proxy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint, method: body ? "POST" : "GET", body }),
+      });
+      return res;
+    };
+
+    let res = await doCall();
+
+    // Token expired — try silent refresh from extension and retry
+    if (res.status === 401) {
+      // Delete stale cookie
+      await fetch("/api/emis/token", { method: "DELETE" }).catch(() => {});
+
+      // Try to get fresh token from extension
+      const refreshed = await trySilentRefresh();
+      if (refreshed) {
+        // Retry the original call
+        res = await doCall();
+      }
+    }
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Unknown error" }));
+
+      // If still 401 after refresh attempt, prompt user to visit EMIS
+      if (res.status === 401) {
+        setError("EMIS სესია ამოიწურა. გახსენით emis.campus.edu.ge თავიდან შესასვლელად.");
+        setStatus({ connected: false, lastSync: null });
+      }
+
       throw new Error(err.error || `EMIS error ${res.status}`);
     }
 
     return res.json();
-  }, []);
+  }, [trySilentRefresh]);
 
   return {
     status,

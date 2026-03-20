@@ -6,6 +6,7 @@ import { MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSchedule } from "@/hooks/use-schedule";
 import { useUserGroup } from "@/hooks/use-user-group";
+import { useEmisSubjects } from "@/hooks/use-emis-subjects";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type LectureType = "lecture" | "seminar" | "lab" | "unknown";
@@ -26,7 +27,8 @@ function getTodayIndex(): number {
 export default function SchedulePage() {
   const [todayIndex, setTodayIndex] = useState<number>(-1);
   const { group } = useUserGroup();
-  const { weekSchedule, loading } = useSchedule();
+  const { subjectNames: emisSubjects } = useEmisSubjects();
+  const { weekSchedule, loading } = useSchedule(emisSubjects);
 
   useEffect(() => {
     setTodayIndex(getTodayIndex());

@@ -5,87 +5,246 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      width: 280px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #1a2e1a;
-      color: #e8f0e8;
-      padding: 20px;
+      width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #172317;
+      color: #e4efe4;
     }
+
+    /* Header */
     .header {
+      padding: 20px 20px 16px;
+      background: linear-gradient(135deg, #1a2e1a 0%, #223322 100%);
+      border-bottom: 1px solid rgba(34, 197, 94, 0.15);
+    }
+    .header-top {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 16px;
+      gap: 12px;
     }
     .logo {
-      width: 32px;
-      height: 32px;
+      width: 36px; height: 36px;
       background: linear-gradient(135deg, #22c55e, #a3e635);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 16px;
-      color: #1a2e1a;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 18px; color: #172317;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
     }
-    .title { font-size: 16px; font-weight: 600; }
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .brand { display: flex; flex-direction: column; }
+    .brand-name { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+    .brand-sub { font-size: 11px; color: #7a9a7a; font-weight: 400; }
+
+    .content { padding: 16px 20px 20px; }
+
+    /* Status card */
+    .status-card {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+    }
+    .status-card.connected {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+    .status-card.waiting {
+      background: rgba(234, 179, 8, 0.08);
+      border: 1px solid rgba(234, 179, 8, 0.15);
+    }
+    .status-card.expired {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+    }
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .status-dot.green { background: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.5); }
+    .status-dot.yellow { background: #eab308; animation: pulse 2s infinite; }
+    .status-dot.red { background: #ef4444; }
+    .status-text { flex: 1; }
+    .status-label { font-size: 13px; font-weight: 600; }
+    .status-detail { font-size: 11px; color: #7a9a7a; margin-top: 2px; }
+    .status-card.expired .status-label { color: #fca5a5; }
+    .status-card.expired .status-detail { color: #8a7070; }
+
+    /* Student info */
+    .student-info {
+      display: flex; align-items: center; gap: 10px;
       padding: 12px;
       border-radius: 10px;
-      font-size: 13px;
-      margin-bottom: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 14px;
     }
-    .status.connected { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
-    .status.waiting { background: rgba(234, 179, 8, 0.15); color: #facc15; }
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
+    .student-avatar {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: rgba(34, 197, 94, 0.15);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #4ade80;
     }
-    .dot.green { background: #22c55e; }
-    .dot.yellow { background: #eab308; animation: pulse 2s infinite; }
-    .meta {
-      font-size: 11px;
-      color: #8a9a8a;
-      padding: 0 4px;
+    .student-name { font-size: 13px; font-weight: 600; }
+    .student-group { font-size: 11px; color: #7a9a7a; }
+
+    /* Features list */
+    .features { margin-bottom: 16px; }
+    .features-title {
+      font-size: 12px; font-weight: 600; color: #7a9a7a;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 10px;
     }
-    a {
-      display: block;
+    .feature {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0;
+    }
+    .feature-icon {
+      width: 28px; height: 28px; border-radius: 7px;
+      background: rgba(34, 197, 94, 0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .feature-text { font-size: 12px; color: #c0d8c0; }
+
+    /* Buttons */
+    .btn {
+      display: block; width: 100%; text-align: center;
+      padding: 11px; border-radius: 10px;
+      font-weight: 600; font-size: 13px;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.25);
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, #16a34a, #15803d); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: #a0c0a0;
+      margin-top: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); color: #e4efe4; }
+    .btn-warning {
+      background: linear-gradient(135deg, #eab308, #ca8a04);
+      color: #172317;
+      box-shadow: 0 2px 8px rgba(234, 179, 8, 0.2);
+    }
+    .btn-warning:hover { background: linear-gradient(135deg, #ca8a04, #a16207); }
+
+    .footer {
       text-align: center;
-      margin-top: 12px;
-      padding: 10px;
-      border-radius: 8px;
-      background: #22c55e;
-      color: #1a2e1a;
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 13px;
+      font-size: 10px;
+      color: #4a6a4a;
+      margin-top: 14px;
     }
-    a:hover { background: #16a34a; }
+
     @keyframes pulse {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+      50% { opacity: 0.3; }
     }
+
+    .hidden { display: none; }
   </style>
 </head>
 <body>
   <div class="header">
-    <div class="logo">U</div>
-    <div class="title">UniHub</div>
+    <div class="header-top">
+      <div class="logo">U</div>
+      <div class="brand">
+        <div class="brand-name">UniHub</div>
+        <div class="brand-sub">EMIS კონექტორი</div>
+      </div>
+    </div>
   </div>
 
-  <div id="status" class="status waiting">
-    <div class="dot yellow"></div>
-    <span>EMIS-თან დაკავშირება...</span>
+  <div class="content">
+    <!-- Connected state -->
+    <div id="connected-view" class="hidden">
+      <div class="status-card connected">
+        <div class="status-dot green"></div>
+        <div class="status-text">
+          <div class="status-label">დაკავშირებულია</div>
+          <div class="status-detail" id="sync-time"></div>
+        </div>
+      </div>
+
+      <div id="student-card" class="student-info hidden">
+        <div class="student-avatar" id="student-initials">?</div>
+        <div>
+          <div class="student-name" id="student-name"></div>
+          <div class="student-group" id="student-meta"></div>
+        </div>
+      </div>
+
+      <a href="https://unihub-edu.vercel.app/dashboard" target="_blank" class="btn btn-primary">
+        UniHub-ის გახსნა
+      </a>
+      <a href="https://emis.campus.edu.ge" target="_blank" class="btn btn-secondary">
+        EMIS-ის გახსნა
+      </a>
+    </div>
+
+    <!-- Expired state -->
+    <div id="expired-view" class="hidden">
+      <div class="status-card expired">
+        <div class="status-dot red"></div>
+        <div class="status-text">
+          <div class="status-label">სესია ამოიწურა</div>
+          <div class="status-detail">შედით EMIS-ში თავიდან — ავტომატურად დაბრუნდებით UniHub-ზე</div>
+        </div>
+      </div>
+
+      <a id="emis-refresh-btn" href="https://emis.campus.edu.ge" target="_blank" class="btn btn-warning">
+        EMIS-ში შესვლა
+      </a>
+      <a href="https://unihub-edu.vercel.app/dashboard" target="_blank" class="btn btn-secondary">
+        UniHub-ის გახსნა
+      </a>
+    </div>
+
+    <!-- Waiting state -->
+    <div id="waiting-view">
+      <div class="status-card waiting">
+        <div class="status-dot yellow"></div>
+        <div class="status-text">
+          <div class="status-label">EMIS-თან დაკავშირება საჭიროა</div>
+          <div class="status-detail">შედით EMIS-ში — ავტომატურად დაბრუნდებით UniHub-ზე</div>
+        </div>
+      </div>
+
+      <div class="features">
+        <div class="features-title">რას მიიღებთ</div>
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <div class="feature-text">ნიშნები და GPA რეალურ დროში</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💳</div>
+          <div class="feature-text">სწავლის საფასური და გრანტი</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📋</div>
+          <div class="feature-text">რეგისტრირებული საგნების ზუსტი ჩვენება</div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">👤</div>
+          <div class="feature-text">პროფილის ავტომატური შევსება</div>
+        </div>
+      </div>
+
+      <a id="emis-login-btn" href="https://emis.campus.edu.ge" target="_blank" class="btn btn-primary">
+        EMIS-ში შესვლა
+      </a>
+      <a href="https://unihub-edu.vercel.app/setup" target="_blank" class="btn btn-secondary">
+        როგორ მუშაობს?
+      </a>
+    </div>
+
+    <div class="footer">
+      UniHub v2.0 — აგრარული უნივერსიტეტი
+    </div>
   </div>
-
-  <div id="meta" class="meta"></div>
-
-  <a href="https://unihub-edu.vercel.app/dashboard" target="_blank">UniHub-ის გახსნა</a>
 
   <script src="popup.js"></script>
 </body>

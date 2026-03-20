@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { useSchedule } from "@/hooks/use-schedule";
 import { useUserGroup } from "@/hooks/use-user-group";
 import { useExams } from "@/hooks/use-exams";
+import { GraduationCap } from "lucide-react";
 
 const quickLinks = [
   { label: "EMIS", icon: Globe, href: "https://emis.campus.edu.ge" },
@@ -71,6 +72,76 @@ function daysUntil(date: Date): number {
   const target = new Date(date);
   target.setHours(0, 0, 0, 0);
   return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function GpaCard() {
+  const [gpa, setGpa] = useState<number | null>(null);
+  const [credits, setCredits] = useState<{ earned: number; total: number } | null>(null);
+
+  useEffect(() => {
+    fetch("/api/emis/token")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.connected) return;
+        try {
+          const cookies = document.cookie.split(";").map((c) => c.trim());
+          const emisCookie = cookies.find((c) => c.startsWith("emis_token="));
+          if (!emisCookie) return;
+          const token = emisCookie.split("=")[1];
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          if (payload.view) {
+            setGpa(payload.view.gpa || null);
+            setCredits({
+              earned: payload.view.credit || 0,
+              total: payload.view.programCredit || 240,
+            });
+          }
+        } catch {}
+      })
+      .catch(() => {});
+  }, []);
+
+  return (
+    <Card className="border-border bg-card">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-base font-semibold">GPA</CardTitle>
+        <Link href="/dashboard/grades" className="flex items-center gap-1 text-sm text-primary hover:underline">
+          ნიშნები <ChevronRight className="size-4" />
+        </Link>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center gap-6">
+          <div className="flex items-baseline gap-2">
+            <span className="text-5xl font-bold text-foreground">
+              {gpa !== null ? gpa.toFixed(2) : "—"}
+            </span>
+          </div>
+          <div className="flex-1 space-y-2">
+            {credits ? (
+              <>
+                <p className="text-sm text-muted-foreground">
+                  {credits.earned} / {credits.total} კრედიტი
+                </p>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${Math.min((credits.earned / credits.total) * 100, 100)}%` }}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-muted-foreground">EMIS-თან დაკავშირება საჭიროა</p>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div className="h-full w-0 bg-primary" />
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function DashboardPage() {
@@ -224,28 +295,8 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* GPA Card — placeholder until EMIS */}
-          <Card className="border-border bg-card">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-base font-semibold">GPA</CardTitle>
-              <Link href="/dashboard/grades" className="flex items-center gap-1 text-sm text-primary hover:underline">
-                ნიშნები <ChevronRight className="size-4" />
-              </Link>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-6">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-foreground">—</span>
-                </div>
-                <div className="flex-1 space-y-2">
-                  <p className="text-sm text-muted-foreground">EMIS-თან დაკავშირება საჭიროა</p>
-                  <div className="h-2 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full w-0 bg-primary" />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* GPA Card */}
+          <GpaCard />
 
           {/* Quick Links */}
           <Card className="border-border bg-card">

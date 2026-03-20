@@ -7,10 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Monitor, LogOut, Github, ExternalLink } from "lucide-react";
+import { Sun, Moon, Monitor, LogOut, Github, ExternalLink, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useUserGroup } from "@/hooks/use-user-group";
-import { decodeGroupCode } from "@/lib/group-decoder";
+import { decodeGroupCode, buildGroupCode, getFacultyByPrefix } from "@/lib/group-decoder";
+import { useEmis } from "@/hooks/use-emis";
 
 type ThemeOption = "light" | "dark" | "system";
 
@@ -23,13 +24,66 @@ const themeOptions: { value: ThemeOption; label: string; icon: typeof Sun }[] = 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { data: session } = useSession();
-  const { group } = useUserGroup();
+  const { group, setGroup } = useUserGroup();
+  const { callEmis } = useEmis();
   const [mounted, setMounted] = useState(false);
+  const [emisGroup, setEmisGroup] = useState<string | null>(null);
+  const [emisProgram, setEmisProgram] = useState<string | null>(null);
+  const [emisSemester, setEmisSemester] = useState<number | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
+  // Auto-correct group from EMIS
+  useEffect(() => {
+    async function syncEmis() {
+      try {
+        const tokenRes = await fetch("/api/emis/token");
+        const tokenData = await tokenRes.json();
+        if (!tokenData.connected) return;
+
+        const data = await callEmis("/student/students/getDetails", {
+          studentId: undefined, // extracted from JWT by backend
+        });
+
+        if (data?.result === "yes" && data.data) {
+          const realGroup = data.data.group;
+          if (realGroup) {
+            setEmisGroup(realGroup);
+            // Auto-correct localStorage if different
+            if (group?.groupCode !== realGroup) {
+              const decoded = decodeGroupCode(realGroup);
+              if (decoded) {
+                setGroup({
+                  university: "agruni",
+                  facultyId: decoded.faculty.id,
+                  year: decoded.groupNumber,
+                  groupNumber: decoded.groupNumber,
+                  groupCode: realGroup,
+                });
+              }
+            }
+          }
+        }
+
+        // Get program/semester from JWT
+        try {
+          const cookies = document.cookie.split(";").map((c) => c.trim());
+          const emisCookie = cookies.find((c) => c.startsWith("emis_token="));
+          if (emisCookie) {
+            const token = emisCookie.split("=")[1];
+            const payload = JSON.parse(atob(token.split(".")[1]));
+            if (payload.currentProgram?.nameEng) setEmisProgram(payload.currentProgram.nameEng);
+            if (payload.view?.semester) setEmisSemester(payload.view.semester);
+          }
+        } catch {}
+      } catch {}
+    }
+    syncEmis();
+  }, []);
+
   const currentTheme = mounted ? theme : "system";
-  const decoded = group?.groupCode ? decodeGroupCode(group.groupCode) : null;
+  const displayGroup = emisGroup || group?.groupCode;
+  const decoded = displayGroup ? decodeGroupCode(displayGroup) : null;
 
   return (
     <div className="min-h-screen pb-24 lg:pb-8">
@@ -68,13 +122,21 @@ export default function SettingsPage() {
                   <p className="mt-1 text-sm font-medium text-foreground line-clamp-2">{decoded.faculty.nameKa}</p>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
-                  <p className="text-xs text-muted-foreground">კურსი</p>
-                  <p className="mt-1 text-sm font-medium text-foreground">{decoded.entryYear} წელი</p>
+                  <p className="text-xs text-muted-foreground">{emisSemester ? "სემესტრი" : "ჩარიცხვის წელი"}</p>
+                  <p className="mt-1 text-sm font-medium text-foreground">
+                    {emisSemester ? `${emisSemester} სემესტრი` : `${decoded.entryYear} წელი`}
+                  </p>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
-                  <p className="text-xs text-muted-foreground">ჯგუფი</p>
-                  <p className="mt-1 text-sm font-medium text-foreground">{group?.groupCode?.toUpperCase()}</p>
+                  <p className="text-xs text-muted-foreground">აკად. ჯგუფი</p>
+                  <p className="mt-1 text-sm font-medium text-foreground">{displayGroup?.toUpperCase()}</p>
                 </div>
+              </div>
+            )}
+            {emisProgram && (
+              <div className="mt-3 rounded-lg bg-muted/50 p-3 text-center">
+                <p className="text-xs text-muted-foreground">პროგრამა</p>
+                <p className="mt-1 text-sm font-medium text-foreground">{emisProgram}</p>
               </div>
             )}
           </CardContent>

@@ -52,16 +52,16 @@ export default function OnboardingPage() {
   const [direction, setDirection] = useState<"forward" | "back">("forward");
   const [animating, setAnimating] = useState(false);
   const [facultyId, setFacultyId] = useState<string | null>(null);
-  const [year, setYear] = useState<number | null>(null);
+  const [entryYear, setEntryYear] = useState<number | null>(null);
   const [groupNumber, setGroupNumber] = useState<number | null>(null);
 
   const canGoNext = useMemo(() => {
     switch (step) {
       case 1: return facultyId !== null;
-      case 2: return year !== null && groupNumber !== null;
+      case 2: return entryYear !== null && groupNumber !== null;
       default: return false;
     }
-  }, [step, facultyId, year, groupNumber]);
+  }, [step, facultyId, entryYear, groupNumber]);
 
   const selectedFaculty = useMemo(() => {
     if (!facultyId) return null;
@@ -70,12 +70,12 @@ export default function OnboardingPage() {
   }, [facultyId]);
 
   const groupCodePreview = useMemo(() => {
-    if (!selectedFaculty || !year || !groupNumber) return "";
+    if (!selectedFaculty || !entryYear || !groupNumber) return "";
     const academicYear = getAcademicYear();
-    const entryYear = academicYear - year + 1;
-    const prefix = year === 1 ? "" : selectedFaculty.prefix;
+    const isFirstYear = entryYear === academicYear || entryYear === academicYear + 1;
+    const prefix = isFirstYear ? "" : selectedFaculty.prefix;
     return buildGroupCode(prefix, entryYear, groupNumber);
-  }, [selectedFaculty, year, groupNumber]);
+  }, [selectedFaculty, entryYear, groupNumber]);
 
   function handleNext() {
     if (step < TOTAL_STEPS) {
@@ -88,17 +88,18 @@ export default function OnboardingPage() {
       return;
     }
 
-    if (!facultyId || !year || !groupNumber || !selectedFaculty) return;
+    if (!facultyId || !entryYear || !groupNumber || !selectedFaculty) return;
 
     const academicYear = getAcademicYear();
-    const entryYear = academicYear - year + 1;
-    const prefix = year === 1 ? "" : selectedFaculty.prefix;
+    const isFirstYear = entryYear === academicYear || entryYear === academicYear + 1;
+    const prefix = isFirstYear ? "" : selectedFaculty.prefix;
     const groupCode = buildGroupCode(prefix, entryYear, groupNumber);
+    const studentYear = academicYear - entryYear + 1;
 
     const userGroup: UserGroup = {
       university: "agruni",
       facultyId,
-      year,
+      year: studentYear,
       groupNumber,
       groupCode,
     };
@@ -167,8 +168,8 @@ export default function OnboardingPage() {
             )}
             {step === 2 && (
               <div className="space-y-4">
-                <YearPicker value={year} onChange={setYear} />
-                {year !== null && (
+                <YearPicker value={entryYear} onChange={setEntryYear} />
+                {entryYear !== null && (
                   <GroupPicker
                     value={groupNumber}
                     onChange={setGroupNumber}

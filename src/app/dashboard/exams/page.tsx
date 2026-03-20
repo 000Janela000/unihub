@@ -9,6 +9,7 @@ import { Search, Download, Clock, User, Users, CalendarPlus, ChevronDown, MapPin
 import { cn } from "@/lib/utils";
 import { useExams } from "@/hooks/use-exams";
 import { useUserGroup } from "@/hooks/use-user-group";
+import { useEmisSubjects } from "@/hooks/use-emis-subjects";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Exam, ExamType } from "@/types";
 
@@ -117,7 +118,8 @@ export default function ExamsPage() {
   const [showAll, setShowAll] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<ExamTypeKey[]>([]);
   const { group } = useUserGroup();
-  const { exams, loading } = useExams(group?.groupCode || null);
+  const { subjectNames: emisSubjects } = useEmisSubjects();
+  const { exams, loading } = useExams(group?.groupCode || null, "agruni", emisSubjects);
 
   const filteredExams = useMemo(() => {
     return exams

@@ -16,9 +16,12 @@ import {
   MoreHorizontal,
   Moon,
   Sun,
+  Wallet,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { ExtensionBanner } from "@/components/layout/extension-banner";
+import { ExtensionModal } from "@/components/layout/extension-modal";
 
 const navItems = [
   { href: "/dashboard", label: "მთავარი", icon: LayoutDashboard },
@@ -26,6 +29,7 @@ const navItems = [
   { href: "/dashboard/exams", label: "გამოცდები", icon: FileText },
   { href: "/dashboard/grades", label: "ნიშნები", icon: GraduationCap },
   { href: "/dashboard/conspects", label: "კონსპექტები", icon: BookOpen },
+  { href: "/dashboard/billing", label: "ფინანსები", icon: Wallet },
   { href: "/dashboard/settings", label: "პარამეტრები", icon: Settings },
 ];
 
@@ -188,7 +192,11 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-background">
       <Sidebar />
       <MobileNav />
-      <main className="pb-20 lg:pl-60 lg:pb-0">{children}</main>
+      <main className="pb-20 lg:pl-60 lg:pb-0">
+        <ExtensionBanner />
+        {children}
+      </main>
+      <ExtensionModal />
     </div>
   );
 }

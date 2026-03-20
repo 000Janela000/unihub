@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,18 +12,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TrendingUp, TrendingDown, ArrowUpDown, GraduationCap, Puzzle, ExternalLink, RefreshCw } from "lucide-react";
+import { ArrowUpDown, GraduationCap, Puzzle, ExternalLink, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEmis } from "@/hooks/use-emis";
 import Link from "next/link";
 
 interface Course {
   name: string;
+  nameEn: string;
+  code: string;
   credits: number;
   grade: string;
   points: number;
-  status: "passed" | "failed" | "retaken";
+  status: "passed" | "failed";
   semester: number;
+  professor: string;
+  groupName: string;
+  year: string;
 }
 
 const gradeColors: Record<string, string> = {
@@ -31,16 +36,11 @@ const gradeColors: Record<string, string> = {
   B: "bg-accent/20 text-accent-foreground border-accent/30",
   C: "bg-chart-3/20 text-chart-3 border-chart-3/30",
   D: "bg-chart-5/20 text-chart-5 border-chart-5/30",
+  E: "bg-amber-500/20 text-amber-600 border-amber-500/30",
   F: "bg-destructive/20 text-destructive border-destructive/30",
 };
 
-function letterGrade(points: number): string {
-  if (points >= 91) return "A";
-  if (points >= 81) return "B";
-  if (points >= 71) return "C";
-  if (points >= 61) return "D";
-  return "F";
-}
+const SEMESTER_LABELS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
 type SortKey = "name" | "grade" | "credits";
 
@@ -51,7 +51,8 @@ export default function GradesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [gpa, setGpa] = useState(0);
   const [earnedCredits, setEarnedCredits] = useState(0);
-  const [requiredCredits] = useState(240);
+  const [requiredCredits, setRequiredCredits] = useState(240);
+  const [averageScore, setAverageScore] = useState(0);
   const [selectedSemester, setSelectedSemester] = useState("all");
   const [sortBy, setSortBy] = useState<SortKey>("name");
   const [sortAsc, setSortAsc] = useState(true);
@@ -67,6 +68,7 @@ export default function GradesPage() {
       const data = await res.json();
       if (data.connected) {
         setConnected(true);
+        loadJwtData();
         await fetchGrades();
       } else {
         setLoading(false);
@@ -76,33 +78,75 @@ export default function GradesPage() {
     }
   }
 
+  function loadJwtData() {
+    try {
+      const cookies = document.cookie.split(";").map((c) => c.trim());
+      const emisCookie = cookies.find((c) => c.startsWith("emis_token="));
+      if (!emisCookie) return;
+      const token = emisCookie.split("=")[1];
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.view) {
+        setGpa(payload.view.gpa || 0);
+        setEarnedCredits(payload.view.credit || 0);
+        setRequiredCredits(payload.view.programCredit || 240);
+        setAverageScore(payload.view.averageScore || 0);
+      }
+    } catch {
+      // JWT decode failed — will compute from grades instead
+    }
+  }
+
   async function fetchGrades() {
     setLoading(true);
     try {
-      const data = await callEmis("/student/result/get", {});
+      // EMIS result/get needs studentId in body
+      // The studentId comes from the JWT — try to extract it
+      let studentId: number | undefined;
+      try {
+        const cookies = document.cookie.split(";").map((c) => c.trim());
+        const emisCookie = cookies.find((c) => c.startsWith("emis_token="));
+        if (emisCookie) {
+          const token = emisCookie.split("=")[1];
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          studentId = payload.id;
+        }
+      } catch {}
 
-      // Parse EMIS response into courses
-      // EMIS returns grades in its own format — adapt here
-      if (Array.isArray(data?.results || data)) {
-        const results = data?.results || data;
-        const parsed: Course[] = results.map((r: any, i: number) => ({
-          name: r.subjectName || r.subject || `საგანი ${i + 1}`,
-          credits: r.credits || r.ects || 0,
-          grade: r.grade || letterGrade(r.points || r.mark || 0),
-          points: r.points || r.mark || 0,
-          status: (r.points || r.mark || 0) >= 51 ? "passed" : "failed",
-          semester: r.semester || r.semesterNumber || 1,
-        }));
-        setCourses(parsed);
+      const data = await callEmis("/student/result/get", {
+        studentId: studentId || undefined,
+      });
 
-        // Calculate GPA (4.0 scale)
-        const totalCredits = parsed.reduce((s, c) => s + c.credits, 0);
-        const weightedSum = parsed.reduce((s, c) => {
-          const gradePoint = { A: 4.0, B: 3.0, C: 2.0, D: 1.0, F: 0 }[c.grade] || 0;
-          return s + gradePoint * c.credits;
-        }, 0);
-        setGpa(totalCredits > 0 ? weightedSum / totalCredits : 0);
-        setEarnedCredits(parsed.filter((c) => c.status === "passed").reduce((s, c) => s + c.credits, 0));
+      // EMIS response: { result: "yes", data: [{ id, name, altName, items: [...] }] }
+      if (data?.result === "yes" && Array.isArray(data.data)) {
+        const allItems: Course[] = [];
+        for (const edu of data.data) {
+          if (!Array.isArray(edu.items)) continue;
+          for (const r of edu.items) {
+            allItems.push({
+              name: r.bookName || "",
+              nameEn: r.bookAltName || "",
+              code: r.bookCode || "",
+              credits: r.credit || 0,
+              grade: r.result || "F",
+              points: typeof r.score === "number" ? r.score : parseFloat(r.score) || 0,
+              status: (r.score || 0) >= 51 ? "passed" : "failed",
+              semester: r.semester || 1,
+              professor: r.profName || "",
+              groupName: r.groupName || "",
+              year: r.year || "",
+            });
+          }
+        }
+        setCourses(allItems);
+
+        // If JWT didn't provide GPA, compute from grades
+        if (gpa === 0 && allItems.length > 0) {
+          const gradePoints: Record<string, number> = { A: 4.0, B: 3.0, C: 2.0, D: 1.0, E: 0.5, F: 0 };
+          const totalCredits = allItems.reduce((s, c) => s + c.credits, 0);
+          const weightedSum = allItems.reduce((s, c) => s + (gradePoints[c.grade] || 0) * c.credits, 0);
+          setGpa(totalCredits > 0 ? weightedSum / totalCredits : 0);
+          setEarnedCredits(allItems.filter((c) => c.status === "passed").reduce((s, c) => s + c.credits, 0));
+        }
       }
     } catch (err) {
       console.error("Failed to fetch grades:", err);
@@ -113,17 +157,16 @@ export default function GradesPage() {
 
   async function handleRefresh() {
     setSyncing(true);
+    loadJwtData();
     await fetchGrades();
     setSyncing(false);
   }
 
-  // Semesters from data
   const semesters = useMemo(() => {
     const set = new Set(courses.map((c) => c.semester));
     return Array.from(set).sort((a, b) => a - b);
   }, [courses]);
 
-  // Filter and sort
   const filteredCourses = useMemo(() => {
     return courses
       .filter((c) => selectedSemester === "all" || c.semester === parseInt(selectedSemester))
@@ -177,7 +220,6 @@ export default function GradesPage() {
     );
   }
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen pb-24 lg:pb-8">
@@ -198,7 +240,6 @@ export default function GradesPage() {
     );
   }
 
-  // Connected — show real grades
   return (
     <div className="min-h-screen pb-24 lg:pb-8">
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
@@ -230,6 +271,9 @@ export default function GradesPage() {
                     </span>
                     <span className="text-lg font-medium text-muted-foreground">GPA</span>
                   </div>
+                  {averageScore > 0 && (
+                    <p className="mt-1 text-sm text-muted-foreground">საშუალო ქულა: {averageScore}</p>
+                  )}
                 </div>
               </div>
 
@@ -243,11 +287,13 @@ export default function GradesPage() {
                 <div className="mt-2 h-3 overflow-hidden rounded-full bg-secondary">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
-                    style={{ width: `${(earnedCredits / requiredCredits) * 100}%` }}
+                    style={{ width: `${Math.min((earnedCredits / requiredCredits) * 100, 100)}%` }}
                   />
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  დარჩენილია {requiredCredits - earnedCredits} კრედიტი
+                  {earnedCredits >= requiredCredits
+                    ? "კრედიტები შესრულებულია"
+                    : `დარჩენილია ${requiredCredits - earnedCredits} კრედიტი`}
                 </p>
               </div>
             </div>
@@ -272,7 +318,7 @@ export default function GradesPage() {
               onClick={() => setSelectedSemester(String(sem))}
               className="rounded-full"
             >
-              {["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][sem - 1] || sem} სემესტრი
+              {SEMESTER_LABELS[sem - 1] || sem} სემესტრი
             </Button>
           ))}
         </div>
@@ -316,6 +362,9 @@ export default function GradesPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate font-medium text-foreground">{course.name}</h3>
+                      {course.nameEn && (
+                        <p className="truncate text-xs text-muted-foreground">{course.nameEn}</p>
+                      )}
                       <p className="text-sm text-muted-foreground">{course.credits} ECTS</p>
                     </div>
                     <div
@@ -337,6 +386,11 @@ export default function GradesPage() {
                     {course.status === "failed" && (
                       <Badge variant="destructive">ვერ ჩააბარა</Badge>
                     )}
+                    {course.professor && (
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                        {course.professor}
+                      </Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -349,7 +403,7 @@ export default function GradesPage() {
           <CardContent className="flex flex-col items-center justify-between gap-4 p-4 sm:flex-row">
             <div className="text-center sm:text-left">
               <p className="text-sm text-muted-foreground">
-                {selectedSemester === "all" ? "სულ" : `${["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][parseInt(selectedSemester) - 1]} სემესტრი`}
+                {selectedSemester === "all" ? "სულ" : `${SEMESTER_LABELS[parseInt(selectedSemester) - 1] || selectedSemester} სემესტრი`}
               </p>
               <p className="text-lg font-semibold text-foreground">
                 {filteredCourses.reduce((s, c) => s + c.credits, 0)} კრედიტი

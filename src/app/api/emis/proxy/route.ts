@@ -7,14 +7,32 @@ const EMIS_TOKEN_COOKIE = "emis_token";
 
 // Allowed EMIS endpoints (whitelist to prevent abuse)
 const ALLOWED_ENDPOINTS = [
+  // Profile & student data
   "/student/students/getDetails",
-  "/student/result/get",
+  "/student/chancellery/getUserInfo",
   "/student/registration/getStudentData",
   "/student/registration/getRegistrationBooks",
   "/student/registration/getProgram",
+  "/student/registration/groupOption",
+  // Grades & results
+  "/student/result/get",
+  "/student/card",
+  "/student/getCardDetails",
   "/student/tables/getAcTables",
+  // Program & registration
   "/student/arch/getProgram",
-  "/student/chancellery/getUserInfo",
+  "/student/program/get",
+  "/student/arch/getStudentData",
+  "/student/arch/getMyChoosdBooks",
+  "/student/arch/getChooseBooks",
+  "/student/arch/getRecoveryBooks",
+  // Billing & finance
+  "/student/billing/getActiveYearList",
+  "/student/billing/getDetails",
+  "/student/billing/getStudentGrants",
+  "/student/billing/getStudentEvents",
+  // Dashboard
+  "/student/dashboardInfo",
 ];
 
 /**
@@ -44,7 +62,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing endpoint" }, { status: 400 });
     }
 
-    if (!ALLOWED_ENDPOINTS.includes(endpoint)) {
+    // Strip query params for whitelist check, but keep full path for request
+    const basePath = endpoint.split("?")[0].replace(/\/$/, "");
+    if (!ALLOWED_ENDPOINTS.some((allowed) => basePath.startsWith(allowed))) {
       return NextResponse.json({ error: "Endpoint not allowed" }, { status: 403 });
     }
 
