@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "UniHub EMIS Connector",
   "version": "1.0.0",
-  "description": "Connects UniHub with EMIS to sync your grades, GPA, and profile data.",
+  "description": "აგრარული უნივერსიტეტის სტუდენტებისთვის — ნიშნები, GPA და ფინანსები UniHub-ზე",
   "permissions": ["storage"],
   "host_permissions": [
     "https://emis.campus.edu.ge/*"
