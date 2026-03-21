@@ -1,18 +1,10 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ArrowUpDown, GraduationCap, Puzzle, ExternalLink, RefreshCw } from "lucide-react";
+import { GraduationCap, Puzzle, ExternalLink, RefreshCw, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEmis } from "@/hooks/use-emis";
 import Link from "next/link";
@@ -31,32 +23,76 @@ interface Course {
   year: string;
 }
 
-const gradeColors: Record<string, string> = {
-  A: "bg-primary/20 text-primary border-primary/30",
-  B: "bg-accent/20 text-accent-foreground border-accent/30",
-  C: "bg-chart-3/20 text-chart-3 border-chart-3/30",
-  D: "bg-chart-5/20 text-chart-5 border-chart-5/30",
-  E: "bg-amber-500/20 text-amber-600 border-amber-500/30",
-  F: "bg-destructive/20 text-destructive border-destructive/30",
+interface JwtStats {
+  gpa: number;
+  earnedCredits: number;
+  requiredCredits: number;
+  averageScore: number;
+  semester: number;
+}
+
+const GRADE_CONFIG: Record<string, { label: string; color: string; points: number }> = {
+  A: { label: "A", color: "text-emerald-500", points: 4.0 },
+  B: { label: "B", color: "text-primary", points: 3.0 },
+  C: { label: "C", color: "text-blue-500", points: 2.0 },
+  D: { label: "D", color: "text-amber-500", points: 1.0 },
+  E: { label: "E", color: "text-orange-500", points: 0.5 },
+  F: { label: "F", color: "text-destructive", points: 0 },
 };
 
-const SEMESTER_LABELS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+const SEMESTER_LABELS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
 
-type SortKey = "name" | "grade" | "credits";
+function getJwtStats(): JwtStats | null {
+  try {
+    const token = localStorage.getItem("emis_token");
+    if (!token) {
+      // Try cookie fallback
+      const cookies = document.cookie.split(";").map((c) => c.trim());
+      const emisCookie = cookies.find((c) => c.startsWith("emis_token="));
+      if (!emisCookie) return null;
+      const cookieToken = emisCookie.split("=")[1];
+      const payload = JSON.parse(atob(cookieToken.split(".")[1]));
+      return {
+        gpa: payload.view?.gpa || 0,
+        earnedCredits: payload.view?.credit || 0,
+        requiredCredits: payload.view?.programCredit || 240,
+        averageScore: payload.view?.averageScore || 0,
+        semester: payload.view?.semester || 1,
+      };
+    }
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return {
+      gpa: payload.view?.gpa || 0,
+      earnedCredits: payload.view?.credit || 0,
+      requiredCredits: payload.view?.programCredit || 240,
+      averageScore: payload.view?.averageScore || 0,
+      semester: payload.view?.semester || 1,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function gradeToGpaPoints(grade: string): number {
+  return GRADE_CONFIG[grade]?.points ?? 0;
+}
+
+function computeSemesterGpa(courses: Course[]): number {
+  const totalCredits = courses.reduce((s, c) => s + c.credits, 0);
+  if (totalCredits === 0) return 0;
+  const weighted = courses.reduce((s, c) => s + gradeToGpaPoints(c.grade) * c.credits, 0);
+  return weighted / totalCredits;
+}
 
 export default function GradesPage() {
   const { callEmis } = useEmis();
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [gpa, setGpa] = useState(0);
-  const [earnedCredits, setEarnedCredits] = useState(0);
-  const [requiredCredits, setRequiredCredits] = useState(240);
-  const [averageScore, setAverageScore] = useState(0);
-  const [selectedSemester, setSelectedSemester] = useState("all");
-  const [sortBy, setSortBy] = useState<SortKey>("name");
-  const [sortAsc, setSortAsc] = useState(true);
+  const [jwtStats, setJwtStats] = useState<JwtStats | null>(null);
+  const [selectedSemester, setSelectedSemester] = useState<number | "all">("all");
   const [syncing, setSyncing] = useState(false);
+  const [expandedSemesters, setExpandedSemesters] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     checkConnection();
@@ -68,7 +104,14 @@ export default function GradesPage() {
       const data = await res.json();
       if (data.connected) {
         setConnected(true);
-        loadJwtData();
+        // Read JWT stats synchronously — no race condition
+        const stats = getJwtStats();
+        setJwtStats(stats);
+        // Default to current semester
+        if (stats?.semester) {
+          setSelectedSemester(stats.semester);
+          setExpandedSemesters(new Set([stats.semester]));
+        }
         await fetchGrades();
       } else {
         setLoading(false);
@@ -78,45 +121,11 @@ export default function GradesPage() {
     }
   }
 
-  function loadJwtData() {
-    try {
-      const cookies = document.cookie.split(";").map((c) => c.trim());
-      const emisCookie = cookies.find((c) => c.startsWith("emis_token="));
-      if (!emisCookie) return;
-      const token = emisCookie.split("=")[1];
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      if (payload.view) {
-        setGpa(payload.view.gpa || 0);
-        setEarnedCredits(payload.view.credit || 0);
-        setRequiredCredits(payload.view.programCredit || 240);
-        setAverageScore(payload.view.averageScore || 0);
-      }
-    } catch {
-      // JWT decode failed — will compute from grades instead
-    }
-  }
-
   async function fetchGrades() {
     setLoading(true);
     try {
-      // EMIS result/get needs studentId in body
-      // The studentId comes from the JWT — try to extract it
-      let studentId: number | undefined;
-      try {
-        const cookies = document.cookie.split(";").map((c) => c.trim());
-        const emisCookie = cookies.find((c) => c.startsWith("emis_token="));
-        if (emisCookie) {
-          const token = emisCookie.split("=")[1];
-          const payload = JSON.parse(atob(token.split(".")[1]));
-          studentId = payload.id;
-        }
-      } catch {}
+      const data = await callEmis("/student/result/get", {});
 
-      const data = await callEmis("/student/result/get", {
-        studentId: studentId || undefined,
-      });
-
-      // EMIS response: { result: "yes", data: [{ id, name, altName, items: [...] }] }
       if (data?.result === "yes" && Array.isArray(data.data)) {
         const allItems: Course[] = [];
         for (const edu of data.data) {
@@ -138,15 +147,6 @@ export default function GradesPage() {
           }
         }
         setCourses(allItems);
-
-        // If JWT didn't provide GPA, compute from grades
-        if (gpa === 0 && allItems.length > 0) {
-          const gradePoints: Record<string, number> = { A: 4.0, B: 3.0, C: 2.0, D: 1.0, E: 0.5, F: 0 };
-          const totalCredits = allItems.reduce((s, c) => s + c.credits, 0);
-          const weightedSum = allItems.reduce((s, c) => s + (gradePoints[c.grade] || 0) * c.credits, 0);
-          setGpa(totalCredits > 0 ? weightedSum / totalCredits : 0);
-          setEarnedCredits(allItems.filter((c) => c.status === "passed").reduce((s, c) => s + c.credits, 0));
-        }
       }
     } catch (err) {
       console.error("Failed to fetch grades:", err);
@@ -157,64 +157,93 @@ export default function GradesPage() {
 
   async function handleRefresh() {
     setSyncing(true);
-    loadJwtData();
+    setJwtStats(getJwtStats());
     await fetchGrades();
     setSyncing(false);
   }
 
+  // Use JWT GPA (authoritative from EMIS) — never recalculate
+  const gpa = jwtStats?.gpa ?? 0;
+  const earnedCredits = jwtStats?.earnedCredits ?? 0;
+  const requiredCredits = jwtStats?.requiredCredits ?? 240;
+  const averageScore = jwtStats?.averageScore ?? 0;
+  const currentSemester = jwtStats?.semester ?? 0;
+
   const semesters = useMemo(() => {
     const set = new Set(courses.map((c) => c.semester));
-    return Array.from(set).sort((a, b) => a - b);
+    return Array.from(set).sort((a, b) => b - a); // newest first
   }, [courses]);
 
-  const filteredCourses = useMemo(() => {
-    return courses
-      .filter((c) => selectedSemester === "all" || c.semester === parseInt(selectedSemester))
-      .sort((a, b) => {
-        let cmp = 0;
-        if (sortBy === "name") cmp = a.name.localeCompare(b.name, "ka");
-        else if (sortBy === "grade") cmp = a.grade.localeCompare(b.grade);
-        else if (sortBy === "credits") cmp = a.credits - b.credits;
-        return sortAsc ? cmp : -cmp;
-      });
-  }, [courses, selectedSemester, sortBy, sortAsc]);
+  const coursesBySemester = useMemo(() => {
+    const map = new Map<number, Course[]>();
+    for (const c of courses) {
+      if (!map.has(c.semester)) map.set(c.semester, []);
+      map.get(c.semester)!.push(c);
+    }
+    // Sort courses within each semester by points descending
+    map.forEach((list) => {
+      list.sort((a: Course, b: Course) => b.points - a.points);
+    });
+    return map;
+  }, [courses]);
 
-  // Not connected — show setup prompt
+  const filteredSemesters = useMemo(() => {
+    if (selectedSemester === "all") return semesters;
+    return semesters.filter((s) => s === selectedSemester);
+  }, [semesters, selectedSemester]);
+
+  const toggleSemester = (sem: number) => {
+    setExpandedSemesters((prev) => {
+      const next = new Set(prev);
+      if (next.has(sem)) next.delete(sem);
+      else next.add(sem);
+      return next;
+    });
+  };
+
+  // Grade distribution for stats
+  const gradeDistribution = useMemo(() => {
+    const dist: Record<string, number> = {};
+    for (const c of courses) {
+      dist[c.grade] = (dist[c.grade] || 0) + 1;
+    }
+    return dist;
+  }, [courses]);
+
+  // Not connected
   if (!loading && !connected) {
     return (
       <div className="min-h-screen pb-24 lg:pb-8">
         <header className="border-b border-border bg-card/50 backdrop-blur-sm">
           <div className="px-4 py-4 lg:px-8">
-            <h1 className="text-xl font-semibold text-foreground lg:text-2xl">შეფასებები და GPA</h1>
+            <h1 className="text-xl font-semibold text-foreground lg:text-2xl">შეფასებები</h1>
             <p className="text-sm text-muted-foreground">აკადემიური მოსწრება</p>
           </div>
         </header>
         <main className="px-4 py-6 lg:px-8">
-          <Card className="border-border bg-card">
-            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-6 flex size-20 items-center justify-center rounded-2xl bg-primary/10">
-                <GraduationCap className="size-10 text-primary" />
-              </div>
-              <h2 className="text-xl font-semibold text-foreground">EMIS-თან დაკავშირება საჭიროა</h2>
-              <p className="mt-2 max-w-md text-muted-foreground">
-                ნიშნებისა და GPA-ს სანახავად საჭიროა UniHub Chrome გაფართოების დაყენება.
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/setup">
-                  <Button className="gap-2">
-                    <Puzzle className="size-4" />
-                    გაფართოების დაყენება
-                  </Button>
-                </Link>
-                <a href="https://emis.campus.edu.ge" target="_blank" rel="noopener noreferrer">
-                  <Button variant="outline" className="gap-2">
-                    EMIS გახსნა
-                    <ExternalLink className="size-4" />
-                  </Button>
-                </a>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="mb-6 flex size-20 items-center justify-center rounded-2xl bg-primary/10">
+              <GraduationCap className="size-10 text-primary" />
+            </div>
+            <h2 className="text-xl font-semibold text-foreground">EMIS-თან დაკავშირება საჭიროა</h2>
+            <p className="mt-2 max-w-md text-muted-foreground">
+              ნიშნებისა და GPA-ს სანახავად საჭიროა UniHub Chrome გაფართოების დაყენება.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/setup">
+                <Button className="gap-2">
+                  <Puzzle className="size-4" />
+                  გაფართოების დაყენება
+                </Button>
+              </Link>
+              <a href="https://emis.campus.edu.ge" target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" className="gap-2">
+                  EMIS გახსნა
+                  <ExternalLink className="size-4" />
+                </Button>
+              </a>
+            </div>
+          </div>
         </main>
       </div>
     );
@@ -225,196 +254,231 @@ export default function GradesPage() {
       <div className="min-h-screen pb-24 lg:pb-8">
         <header className="border-b border-border bg-card/50 backdrop-blur-sm">
           <div className="px-4 py-4 lg:px-8">
-            <Skeleton className="h-8 w-48" />
-            <Skeleton className="mt-1 h-4 w-32" />
+            <Skeleton className="h-7 w-40" />
+            <Skeleton className="mt-1 h-4 w-28" />
           </div>
         </header>
-        <main className="px-4 py-6 lg:px-8 space-y-6">
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-10 w-full" />
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-24" />)}
+        <main className="px-4 py-6 lg:px-8 space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
           </div>
+          <Skeleton className="h-10 w-full" />
+          {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-14" />)}
         </main>
       </div>
     );
   }
 
+  const creditPercent = Math.min((earnedCredits / requiredCredits) * 100, 100);
+
   return (
     <div className="min-h-screen pb-24 lg:pb-8">
+      {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="flex items-center justify-between px-4 py-4 lg:px-8">
           <div>
-            <h1 className="text-xl font-semibold text-foreground lg:text-2xl">შეფასებები და GPA</h1>
-            <p className="text-sm text-muted-foreground">აკადემიური მოსწრება</p>
+            <h1 className="text-xl font-semibold text-foreground lg:text-2xl">შეფასებები</h1>
+            <p className="text-sm text-muted-foreground">
+              {currentSemester > 0 ? `${SEMESTER_LABELS[currentSemester - 1]} სემესტრი` : "აკადემიური მოსწრება"}
+            </p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={syncing} className="gap-2">
+          <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={syncing}>
             <RefreshCw className={cn("size-4", syncing && "animate-spin")} />
-            განახლება
           </Button>
         </div>
       </header>
 
-      <main className="px-4 py-6 lg:px-8">
-        {/* GPA Hero */}
-        <Card className="mb-6 overflow-hidden border-border bg-gradient-to-br from-primary/10 via-card to-accent/5">
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-              <div className="flex items-center gap-6">
-                <div className="flex size-24 items-center justify-center rounded-2xl bg-primary/20 ring-2 ring-primary/30">
-                  <GraduationCap className="size-12 text-primary" />
-                </div>
-                <div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-5xl font-bold tracking-tight text-foreground">
-                      {gpa.toFixed(2)}
-                    </span>
-                    <span className="text-lg font-medium text-muted-foreground">GPA</span>
-                  </div>
-                  {averageScore > 0 && (
-                    <p className="mt-1 text-sm text-muted-foreground">საშუალო ქულა: {averageScore}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="w-full md:w-64">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">კრედიტები (ECTS)</span>
-                  <span className="font-medium text-foreground">
-                    {earnedCredits} / {requiredCredits}
-                  </span>
-                </div>
-                <div className="mt-2 h-3 overflow-hidden rounded-full bg-secondary">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary to-accent transition-all duration-500"
-                    style={{ width: `${Math.min((earnedCredits / requiredCredits) * 100, 100)}%` }}
-                  />
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {earnedCredits >= requiredCredits
-                    ? "კრედიტები შესრულებულია"
-                    : `დარჩენილია ${requiredCredits - earnedCredits} კრედიტი`}
-                </p>
-              </div>
+      <main className="px-4 py-5 lg:px-8">
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-3 mb-5">
+          {/* GPA */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground mb-1">GPA</p>
+            <p className="text-2xl font-bold text-foreground lg:text-3xl">{gpa.toFixed(2)}</p>
+            {averageScore > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">{averageScore} ქულა</p>
+            )}
+          </div>
+          {/* Credits */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground mb-1">კრედიტი</p>
+            <p className="text-2xl font-bold text-foreground lg:text-3xl">{earnedCredits}</p>
+            <p className="text-xs text-muted-foreground mt-1">/ {requiredCredits}</p>
+          </div>
+          {/* Progress */}
+          <div className="rounded-xl border border-border bg-card p-4">
+            <p className="text-xs text-muted-foreground mb-1">პროგრესი</p>
+            <p className="text-2xl font-bold text-foreground lg:text-3xl">{Math.round(creditPercent)}%</p>
+            <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-500"
+                style={{ width: `${creditPercent}%` }}
+              />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Semester filter */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          <Button
-            variant={selectedSemester === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setSelectedSemester("all")}
-            className="rounded-full"
-          >
-            ყველა
-          </Button>
-          {semesters.map((sem) => (
-            <Button
-              key={sem}
-              variant={selectedSemester === String(sem) ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedSemester(String(sem))}
-              className="rounded-full"
-            >
-              {SEMESTER_LABELS[sem - 1] || sem} სემესტრი
-            </Button>
-          ))}
+          </div>
         </div>
 
-        {/* Sort */}
-        <div className="mb-4 flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">დალაგება:</span>
-          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">სახელი</SelectItem>
-              <SelectItem value="grade">შეფასება</SelectItem>
-              <SelectItem value="credits">კრედიტი</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="ghost" size="icon" onClick={() => setSortAsc(!sortAsc)}>
-            <ArrowUpDown className={cn("size-4", !sortAsc && "rotate-180")} />
-          </Button>
-        </div>
-
-        {/* Course cards */}
-        {filteredCourses.length === 0 ? (
-          <Card className="border-border">
-            <CardContent className="py-12 text-center text-muted-foreground">
-              საგნები ვერ მოიძებნა
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredCourses.map((course, index) => (
-              <Card
-                key={index}
-                className={cn(
-                  "border-border transition-all duration-300 hover:shadow-md",
-                  course.status === "failed" && "border-destructive/30 bg-destructive/5"
-                )}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-medium text-foreground">{course.name}</h3>
-                      {course.nameEn && (
-                        <p className="truncate text-xs text-muted-foreground">{course.nameEn}</p>
-                      )}
-                      <p className="text-sm text-muted-foreground">{course.credits} ECTS</p>
-                    </div>
-                    <div
-                      className={cn(
-                        "flex size-12 flex-shrink-0 items-center justify-center rounded-lg border text-xl font-bold",
-                        gradeColors[course.grade] || gradeColors.F
-                      )}
-                    >
-                      {course.grade}
-                    </div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
-                      {course.points} ქულა
-                    </Badge>
-                    {course.status === "passed" && (
-                      <Badge className="bg-primary/20 text-primary hover:bg-primary/30">ჩაბარებული</Badge>
-                    )}
-                    {course.status === "failed" && (
-                      <Badge variant="destructive">ვერ ჩააბარა</Badge>
-                    )}
-                    {course.professor && (
-                      <Badge variant="outline" className="text-xs text-muted-foreground">
-                        {course.professor}
-                      </Badge>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+        {/* Grade distribution bar */}
+        {courses.length > 0 && (
+          <div className="mb-5 flex items-center gap-1 rounded-lg overflow-hidden h-2">
+            {["A", "B", "C", "D", "E", "F"].map((g) => {
+              const count = gradeDistribution[g] || 0;
+              if (count === 0) return null;
+              const pct = (count / courses.length) * 100;
+              const colors: Record<string, string> = {
+                A: "bg-emerald-500", B: "bg-primary", C: "bg-blue-500",
+                D: "bg-amber-500", E: "bg-orange-500", F: "bg-destructive",
+              };
+              return <div key={g} className={cn("h-full", colors[g])} style={{ width: `${pct}%` }} />;
+            })}
           </div>
         )}
 
-        {/* Summary */}
-        <Card className="mt-6 border-border bg-card/50">
-          <CardContent className="flex flex-col items-center justify-between gap-4 p-4 sm:flex-row">
-            <div className="text-center sm:text-left">
-              <p className="text-sm text-muted-foreground">
-                {selectedSemester === "all" ? "სულ" : `${SEMESTER_LABELS[parseInt(selectedSemester) - 1] || selectedSemester} სემესტრი`}
-              </p>
-              <p className="text-lg font-semibold text-foreground">
-                {filteredCourses.reduce((s, c) => s + c.credits, 0)} კრედიტი
-              </p>
-            </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground">კუმულატიური GPA</p>
-              <p className="text-2xl font-bold text-primary">{gpa.toFixed(2)}</p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Grade legend */}
+        {courses.length > 0 && (
+          <div className="mb-5 flex flex-wrap gap-3 text-xs text-muted-foreground">
+            {["A", "B", "C", "D", "E", "F"].map((g) => {
+              const count = gradeDistribution[g] || 0;
+              if (count === 0) return null;
+              return (
+                <span key={g} className="flex items-center gap-1.5">
+                  <span className={cn("font-semibold", GRADE_CONFIG[g]?.color)}>{g}</span>
+                  <span>{count}</span>
+                </span>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Semester tabs */}
+        <div className="mb-4 flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+          <button
+            onClick={() => { setSelectedSemester("all"); setExpandedSemesters(new Set(semesters)); }}
+            className={cn(
+              "shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+              selectedSemester === "all"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-secondary"
+            )}
+          >
+            ყველა
+          </button>
+          {semesters.map((sem) => (
+            <button
+              key={sem}
+              onClick={() => { setSelectedSemester(sem); setExpandedSemesters(new Set([sem])); }}
+              className={cn(
+                "shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+                selectedSemester === sem
+                  ? "bg-primary text-primary-foreground"
+                  : sem === currentSemester
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "text-muted-foreground hover:bg-secondary"
+              )}
+            >
+              {SEMESTER_LABELS[sem - 1] || sem}
+              {sem === currentSemester && selectedSemester !== sem && (
+                <span className="ml-1 inline-block size-1.5 rounded-full bg-primary" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Semester sections */}
+        <div className="space-y-3">
+          {filteredSemesters.map((sem) => {
+            const semCourses = coursesBySemester.get(sem) || [];
+            const isExpanded = expandedSemesters.has(sem);
+            const semGpa = computeSemesterGpa(semCourses);
+            const semCredits = semCourses.reduce((s, c) => s + c.credits, 0);
+            const isCurrent = sem === currentSemester;
+
+            return (
+              <div key={sem} className={cn(
+                "rounded-xl border overflow-hidden",
+                isCurrent ? "border-primary/30" : "border-border",
+              )}>
+                {/* Semester header */}
+                <button
+                  onClick={() => toggleSemester(sem)}
+                  className={cn(
+                    "flex w-full items-center justify-between px-4 py-3 text-left transition-colors",
+                    isCurrent ? "bg-primary/5" : "bg-card hover:bg-secondary/50",
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-foreground">
+                      {SEMESTER_LABELS[sem - 1] || sem} სემესტრი
+                    </span>
+                    {isCurrent && (
+                      <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
+                        მიმდინარე
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-xs text-muted-foreground">{semCredits} cr</span>
+                    <span className="text-sm font-semibold text-foreground">{semGpa.toFixed(2)}</span>
+                    <ChevronDown className={cn(
+                      "size-4 text-muted-foreground transition-transform",
+                      isExpanded && "rotate-180"
+                    )} />
+                  </div>
+                </button>
+
+                {/* Course rows */}
+                {isExpanded && (
+                  <div className="divide-y divide-border">
+                    {semCourses.map((course, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3",
+                          course.status === "failed" && "bg-destructive/5"
+                        )}
+                      >
+                        {/* Grade */}
+                        <span className={cn(
+                          "w-8 text-center text-lg font-bold",
+                          GRADE_CONFIG[course.grade]?.color || "text-muted-foreground"
+                        )}>
+                          {course.grade}
+                        </span>
+
+                        {/* Subject info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="truncate text-sm font-medium text-foreground">
+                            {course.name}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-muted-foreground">{course.credits} ECTS</span>
+                            {course.professor && (
+                              <span className="text-xs text-muted-foreground truncate">· {course.professor}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Score */}
+                        <div className="text-right shrink-0">
+                          <p className="text-sm font-semibold text-foreground">{course.points}</p>
+                          <p className="text-[10px] text-muted-foreground">ქულა</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {filteredSemesters.length === 0 && (
+          <div className="py-12 text-center text-muted-foreground">
+            საგნები ვერ მოიძებნა
+          </div>
+        )}
       </main>
     </div>
   );
