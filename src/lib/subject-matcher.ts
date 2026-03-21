@@ -25,15 +25,11 @@ for (const { from, to } of subjectMap.aliases) {
   ALIASES.set(normalize(to), normalize(from));
 }
 
-// Build key lookup: normalized name → all known names for that subject
+// Build key lookup: normalized name → subject key
 const SUBJECT_KEYS = new Map<string, string>();
 for (const entry of subjectMap.subjects) {
   const key = entry.key;
-  for (const name of entry.examNames) {
-    SUBJECT_KEYS.set(normalize(name), key);
-    SUBJECT_KEYS.set(stripParenthetical(name), key);
-  }
-  for (const name of entry.lectureNames) {
+  for (const name of entry.names) {
     SUBJECT_KEYS.set(normalize(name), key);
     SUBJECT_KEYS.set(stripParenthetical(name), key);
   }
