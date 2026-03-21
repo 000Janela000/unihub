@@ -5,19 +5,29 @@ import { useState, useCallback } from "react";
 // Chrome Web Store extension ID — set NEXT_PUBLIC_EXTENSION_ID in Vercel env vars
 const EXTENSION_ID = process.env.NEXT_PUBLIC_EXTENSION_ID || "";
 const EMIS_BASE = "https://emis.campus.edu.ge";
+const TOKEN_STORAGE_KEY = "emis_token";
 
 interface EmisStatus {
   connected: boolean;
   lastSync: string | null;
 }
 
-/**
- * Get the EMIS token from the extension.
- * Returns null if extension not available or no token.
- */
-function getTokenFromExtension(): Promise<string | null> {
+/** Save EMIS token to localStorage for direct browser calls */
+function saveToken(token: string) {
+  try { localStorage.setItem(TOKEN_STORAGE_KEY, token); } catch {}
+}
+
+/** Get EMIS token: try localStorage first, then extension */
+async function getEmisToken(): Promise<string | null> {
+  // Try localStorage first (fastest, works without extension)
+  try {
+    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (stored) return stored;
+  } catch {}
+
+  // Try extension
   if (!EXTENSION_ID || typeof chrome === "undefined" || !chrome.runtime?.sendMessage) {
-    return Promise.resolve(null);
+    return null;
   }
 
   return new Promise((resolve) => {
@@ -30,6 +40,8 @@ function getTokenFromExtension(): Promise<string | null> {
             resolve(null);
             return;
           }
+          // Cache for future direct calls
+          saveToken(response.token);
           resolve(response.token);
         }
       );
@@ -95,6 +107,10 @@ export function useEmis() {
             }
 
             try {
+              // Save to localStorage for direct browser calls
+              saveToken(response.token);
+
+              // Also save to server cookie (for connection status checks)
               const res = await fetch("/api/emis/token", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -131,25 +147,9 @@ export function useEmis() {
    * Gets token from extension, calls EMIS directly — no server proxy needed.
    */
   const callEmis = useCallback(async (endpoint: string, body?: object) => {
-    const token = await getTokenFromExtension();
+    const token = await getEmisToken();
 
     if (!token) {
-      // Fall back: check if we have a server-side cookie and use proxy
-      const tokenCheck = await fetch("/api/emis/token").then(r => r.json()).catch(() => ({ connected: false }));
-      if (tokenCheck.connected) {
-        // Use server proxy as fallback
-        const res = await fetch("/api/emis/proxy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ endpoint, method: body !== undefined ? "POST" : "GET", body }),
-        });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({ error: "Unknown error" }));
-          throw new Error(err.error || `EMIS error ${res.status}`);
-        }
-        return res.json();
-      }
-
       setStatus({ connected: false, lastSync: null });
       throw new Error("EMIS not connected");
     }
