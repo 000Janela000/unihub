@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useEmis } from "./use-emis";
 
 interface EmisSubject {
   name: string;
@@ -18,6 +19,7 @@ export function useEmisSubjects() {
   const [subjects, setSubjects] = useState<EmisSubject[] | null>(null);
   const [subjectNames, setSubjectNames] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(true);
+  const { callEmis } = useEmis();
 
   useEffect(() => {
     async function load() {
@@ -29,22 +31,11 @@ export function useEmisSubjects() {
           return;
         }
 
-        const res = await fetch("/api/emis/proxy", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            endpoint: "/student/arch/getMyChoosdBooks/?page=1&limit=100",
-            method: "POST",
-            body: { filter: { bookName: "" } },
-          }),
-        });
+        const data = await callEmis(
+          "/student/arch/getMyChoosdBooks/?page=1&limit=100",
+          { filter: { bookName: "" } }
+        );
 
-        if (!res.ok) {
-          setLoading(false);
-          return;
-        }
-
-        const data = await res.json();
         if (data?.data && Array.isArray(data.data)) {
           const parsed: EmisSubject[] = data.data.map((item: any) => ({
             name: item.book?.name || "",
@@ -63,7 +54,7 @@ export function useEmisSubjects() {
     }
 
     load();
-  }, []);
+  }, [callEmis]);
 
   return { subjects, subjectNames, loading };
 }
