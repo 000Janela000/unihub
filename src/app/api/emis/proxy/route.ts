@@ -77,13 +77,14 @@ export async function POST(request: NextRequest) {
       },
     };
 
-    if (method === "POST" && body) {
-      fetchOptions.body = JSON.stringify(body);
+    if (method === "POST") {
+      fetchOptions.body = JSON.stringify(body || {});
     }
 
     const emisResponse = await fetch(emisUrl, fetchOptions);
 
     if (!emisResponse.ok) {
+      const errorText = await emisResponse.text().catch(() => "");
       // Token might be expired
       if (emisResponse.status === 401) {
         return NextResponse.json(
@@ -92,15 +93,22 @@ export async function POST(request: NextRequest) {
         );
       }
       return NextResponse.json(
-        { error: `EMIS returned ${emisResponse.status}` },
+        { error: `EMIS returned ${emisResponse.status}`, detail: errorText.slice(0, 200) },
         { status: emisResponse.status }
       );
     }
 
-    const data = await emisResponse.json();
-    return NextResponse.json(data);
+    const text = await emisResponse.text();
+    try {
+      const data = JSON.parse(text);
+      return NextResponse.json(data);
+    } catch {
+      // EMIS returned non-JSON
+      return NextResponse.json({ raw: text.slice(0, 500) });
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Proxy error";
+    console.error("[EMIS Proxy]", message, err instanceof Error ? err.stack : "");
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
